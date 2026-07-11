@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Search — CineMantra{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="sr-page" id="srPage">
+
+    <!-- Hidden stubs — search.js binds to these; actual input is the header bar -->
+    <input type="hidden" id="srInput">
+    <button id="srSubmit" style="display:none"></button>
+    <button id="srClear"  style="display:none"></button>
+    <div    id="srChips"  style="display:none"></div>
+
+    <!-- ══ BODY ════════════════════════════════════════════════════ -->
+    <div class="sr-body" id="srBody">
+
+        <!-- ── Default State (no search yet) ─────────────────────── -->
+        <div class="sr-default" id="srDefault">
+
+            <!-- Recent Searches -->
+            <section class="sr-section" id="srRecentSection" style="display:none">
+                <div class="sr-section-header">
+                    <h3>Recent Searches</h3>
+                    <button class="sr-clear-all" id="srClearAllRecent">Clear All</button>
+                </div>
+                <div class="sr-recent-list" id="srRecentList"></div>
+            </section>
+
+            <!-- Popular Searches -->
+            <section class="sr-section" id="srPopularSection">
+                <div class="sr-section-header">
+                    <h3>🔥 Trending Now</h3>
+                </div>
+                <div class="sr-popular-grid" id="srPopularGrid">
+                    <div class="sr-pop-skeleton skeleton"></div>
+                    <div class="sr-pop-skeleton skeleton"></div>
+                    <div class="sr-pop-skeleton skeleton"></div>
+                    <div class="sr-pop-skeleton skeleton"></div>
+                    <div class="sr-pop-skeleton skeleton"></div>
+                    <div class="sr-pop-skeleton skeleton"></div>
+                </div>
+            </section>
+
+            <!-- Popular Actors -->
+            <section class="sr-section" id="srActorsSection">
+                <div class="sr-section-header">
+                    <h3>⭐ Popular People</h3>
+                </div>
+                <div class="sr-actors-row" id="srActorsRow">
+                    <div class="sr-actor-skeleton skeleton"></div>
+                    <div class="sr-actor-skeleton skeleton"></div>
+                    <div class="sr-actor-skeleton skeleton"></div>
+                    <div class="sr-actor-skeleton skeleton"></div>
+                    <div class="sr-actor-skeleton skeleton"></div>
+                    <div class="sr-actor-skeleton skeleton"></div>
+                </div>
+            </section>
+
+            <!-- Popular Genres -->
+            <section class="sr-section">
+                <div class="sr-section-header"><h3>🎬 Browse Genres</h3></div>
+                <div class="sr-genre-grid">
+                    <button class="sr-genre-card" data-q="Action movies" style="--gc:#E50914">
+                        <span class="sr-genre-icon">💥</span><span>Action</span>
+                    </button>
+                    <button class="sr-genre-card" data-q="Comedy movies" style="--gc:#F59E0B">
+                        <span class="sr-genre-icon">😂</span><span>Comedy</span>
+                    </button>
+                    <button class="sr-genre-card" data-q="Drama movies" style="--gc:#8B5CF6">
+                        <span class="sr-genre-icon">🎭</span><span>Drama</span>
+                    </button>
+                    <button class="sr-genre-card" data-q="Thriller movies" style="--gc:#0EA5E9">
+                        <span class="sr-genre-icon">🔪</span><span>Thriller</span>
+                    </button>
+                    <button class="sr-genre-card" data-q="Romance movies" style="--gc:#EC4899">
+                        <span class="sr-genre-icon">💕</span><span>Romance</span>
+                    </button>
+                    <button class="sr-genre-card" data-q="Horror movies" style="--gc:#1F2937">
+                        <span class="sr-genre-icon">👻</span><span>Horror</span>
+                    </button>
+                    <button class="sr-genre-card" data-q="Sci-Fi movies" style="--gc:#06B6D4">
+                        <span class="sr-genre-icon">🚀</span><span>Sci-Fi</span>
+                    </button>
+                    <button class="sr-genre-card" data-q="Family movies" style="--gc:#10B981">
+                        <span class="sr-genre-icon">👨‍👩‍👧</span><span>Family</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- ── Active Search Results ──────────────────────────────── -->
+        <div class="sr-results-wrap" id="srResultsWrap" style="display:none">
+
+            <!-- Intent + filter pills -->
+            <div class="sr-meta" id="srMeta" style="display:none">
+                <span class="sr-intent" id="srIntent"></span>
+                <div class="sr-filter-pills" id="srFilterPills"></div>
+            </div>
+
+            <!-- Spinner -->
+            <div class="sr-spinner" id="srSpinner" style="display:none">
+                <div class="sr-spinner-ring"></div>
+                <p>Searching...</p>
+            </div>
+
+            <!-- Error -->
+            <div class="sr-error" id="srError" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p id="srErrorMsg">Something went wrong. Please try again.</p>
+            </div>
+
+            <!-- Empty state -->
+            <div class="sr-empty" id="srEmpty" style="display:none">
+                <svg viewBox="0 0 80 80" fill="none">
+                    <circle cx="40" cy="40" r="36" stroke="rgba(229,9,20,0.2)" stroke-width="2"/>
+                    <circle cx="35" cy="33" r="14" stroke="rgba(229,9,20,0.5)" stroke-width="2"/>
+                    <line x1="45" y1="43" x2="58" y2="56" stroke="rgba(229,9,20,0.5)" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+                <p>No Telugu movies found for "<span id="srEmptyQuery"></span>"</p>
+                <p class="sr-empty-sub">Try a Telugu actor name, genre, or browse trending below</p>
+                <div class="sr-empty-suggestions">
+                    <button class="sr-chip" data-q="Trending movies">Trending Movies</button>
+                    <button class="sr-chip" data-q="Popular movies">Popular Movies</button>
+                    <button class="sr-chip" data-q="Top rated movies">Top Rated</button>
+                </div>
+            </div>
+
+            <!-- Results count + sort info -->
+            <div class="sr-results-header" id="srResultsHeader" style="display:none">
+                <p class="sr-count" id="srCount"></p>
+                <div class="sr-lang-badge" id="srLangBadge" style="display:none"></div>
+            </div>
+
+            <!-- Results grid -->
+            <div class="sr-grid" id="srGrid"></div>
+
+            <!-- Infinite scroll sentinel -->
+            <div class="sr-sentinel" id="srSentinel"></div>
+
+            <!-- Load more spinner -->
+            <div class="sr-load-more" id="srLoadMore" style="display:none">
+                <div class="sr-spinner-ring sm"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ VOICE SEARCH OVERLAY ════════════════════════════════════ -->
+    <div class="sr-voice-overlay" id="srVoiceOverlay" style="display:none">
+        <div class="sr-voice-modal">
+            <div class="sr-voice-pulse" id="srVoicePulse">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+            </div>
+            <p class="sr-voice-status" id="srVoiceStatus">Listening...</p>
+            <p class="sr-voice-transcript" id="srVoiceTranscript"></p>
+            <button class="sr-voice-cancel" id="srVoiceCancel">Cancel</button>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}

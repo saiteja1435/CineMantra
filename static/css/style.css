@@ -1,0 +1,239 @@
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+    --bg:           #080B14;
+    --bg-card:      #121826;
+    --bg-elevated:  #1A2235;
+    --bg-glass:     rgba(18, 24, 38, 0.75);
+    --border:       rgba(255,255,255,0.07);
+    --primary:      #E50914;
+    --primary-glow: rgba(229, 9, 20, 0.35);
+    --secondary:    #FFD54F;
+    --text:         #FFFFFF;
+    --text-muted:   #8892A4;
+    --text-dim:     #4A5568;
+    --sidebar-w:    240px;
+    --header-h:     80px;
+    --radius:       12px;
+    --radius-sm:    8px;
+    --transition:   0.25s ease;
+    --font:         'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+}
+
+[data-theme="light"] {
+    --bg:           #F0F2F5;
+    --bg-card:      #FFFFFF;
+    --bg-elevated:  #E8EBF0;
+    --bg-glass:     rgba(255,255,255,0.8);
+    --border:       rgba(0,0,0,0.08);
+    --text:         #0D1117;
+    --text-muted:   #5A6478;
+    --text-dim:     #9AA3B2;
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+svg { display: block; flex-shrink: 0; }
+ul { list-style: none; }
+img { display: block; max-width: 100%; }
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+.app-shell {
+    display: flex;
+    padding-top: var(--header-h);
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-w);
+    min-width: 0;
+    transition: margin-left var(--transition);
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* ============================================================
+   QUICK ACTIONS
+   ============================================================ */
+.quick-actions {
+    display: flex;
+    gap: 0.6rem;
+    padding: 1.5rem 2rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.quick-actions::-webkit-scrollbar { display: none; }
+
+.qa-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 99px;
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid var(--border);
+    transition: all var(--transition);
+}
+.qa-btn svg { width: 14px; height: 14px; }
+.qa-btn:hover, .qa-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 0 16px var(--primary-glow);
+}
+.qa-btn.surprise:hover, .qa-btn.surprise.active {
+    background: var(--secondary);
+    color: #000;
+    border-color: var(--secondary);
+    box-shadow: 0 0 16px rgba(255,213,79,0.35);
+}
+
+/* ============================================================
+   CONTENT ROWS
+   ============================================================ */
+.content-rows { padding: 0 0 3rem; }
+
+.content-row { padding: 2rem 0 0.5rem; }
+
+.row-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 2rem 1rem;
+}
+
+.row-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.row-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+.view-all {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--primary);
+    font-weight: 600;
+    transition: gap var(--transition);
+}
+.view-all svg { width: 14px; height: 14px; }
+.view-all:hover { gap: 0.5rem; }
+
+/* ============================================================
+   SITE FOOTER
+   ============================================================ */
+.site-footer {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    padding: 3rem 2rem 1.5rem;
+    margin-top: 2rem;
+}
+
+.footer-top {
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.footer-brand { flex: 1; min-width: 200px; }
+
+.footer-logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+.footer-logo span { color: var(--primary); }
+
+.footer-brand p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    max-width: 240px;
+}
+
+.footer-links {
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+
+.footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 100px;
+}
+
+.footer-col h4 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.footer-col a {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition: color var(--transition);
+}
+.footer-col a:hover { color: var(--primary); }
+
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* ============================================================
+   FADE-IN ANIMATION
+   ============================================================ */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.content-row {
+    animation: fadeInUp 0.5s ease both;
+}

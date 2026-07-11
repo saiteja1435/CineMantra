@@ -1,0 +1,127 @@
+/* ============================================================
+   LAPTOP  (≤ 1280px)
+   ============================================================ */
+@media (max-width: 1280px) {
+    :root { --sidebar-w: 220px; }
+
+    .hero-poster-placeholder { width: 190px; height: 280px; }
+
+    .hero-title { font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+}
+
+/* ============================================================
+   TABLET  (≤ 1024px)
+   ============================================================ */
+@media (max-width: 1024px) {
+    :root { --sidebar-w: 200px; }
+
+    .hero-banner { height: 520px; }
+
+    .hero-right { display: none; }
+
+    .hero-left { max-width: 100%; }
+
+    .header-center { max-width: 380px; }
+
+    .search-kbd { display: none; }
+
+    .username { display: none; }
+}
+
+/* ============================================================
+   TABLET PORTRAIT  (≤ 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+    :root { --sidebar-w: 240px; }
+
+    /* Sidebar collapses off-screen by default on mobile */
+    .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
+    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 40px rgba(0,0,0,0.6); }
+
+    /* Main content takes full width */
+    .main-content { margin-left: 0; }
+
+    /* Overlay when sidebar is open */
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 140;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition);
+    }
+    .sidebar-overlay.visible { opacity: 1; pointer-events: auto; }
+
+    .hero-banner { height: 460px; border-radius: 0; }
+
+    .hero-content { padding: 1.5rem; }
+
+    .hero-title { font-size: clamp(1.6rem, 5vw, 2.2rem); }
+
+    .hero-overview { -webkit-line-clamp: 2; }
+
+    .hero-slider-controls { left: 1.5rem; }
+
+    .row-header { padding: 0 1.25rem 0.75rem; }
+
+    .cards-row { padding: 0.5rem 1.25rem 1rem; }
+
+    .quick-actions { padding: 1.25rem 1rem; }
+
+    .site-footer { padding: 2rem 1.25rem 1.25rem; }
+
+    .footer-top { flex-direction: column; gap: 1.5rem; }
+
+    .footer-links { gap: 1.5rem; }
+}
+
+/* ============================================================
+   MOBILE  (≤ 480px)
+   ============================================================ */
+@media (max-width: 480px) {
+    :root { --header-h: 64px; }
+
+    .header-logo { font-size: 1.25rem; }
+
+    .search-bar { height: 38px; }
+
+    .search-bar input { font-size: 0.82rem; }
+
+    .lang-selector { display: none; }
+
+    .hero-banner { height: 400px; }
+
+    .hero-title { font-size: 1.5rem; }
+
+    .hero-actions { gap: 0.5rem; }
+
+    .btn-primary, .btn-secondary {
+        padding: 0.6rem 1.1rem;
+        font-size: 0.82rem;
+    }
+
+    .hero-genres { display: none; }
+
+    .movie-card { width: 130px; }
+
+    .card-poster { width: 130px; height: 195px; }
+
+    .footer-links { flex-direction: column; gap: 1rem; }
+
+    .footer-bottom { flex-direction: column; text-align: center; }
+}
+
+/* ============================================================
+   SMALL MOBILE  (≤ 360px)
+   ============================================================ */
+@media (max-width: 360px) {
+    .hero-banner { height: 360px; }
+
+    .hero-meta { font-size: 0.75rem; }
+
+    .movie-card { width: 120px; }
+
+    .card-poster { width: 120px; height: 180px; }
+}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Person — CineMantra{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/person.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="personPage" data-person-id="{{ person_id }}">
+
+    <!-- BACKDROP -->
+    <div class="pp-backdrop-wrap">
+        <div class="pp-backdrop-img" id="ppBackdropImg"></div>
+        <div class="pp-backdrop-overlay"></div>
+    </div>
+
+    <div class="pp-container">
+
+        <!-- LOADING -->
+        <div class="pp-loading" id="ppLoading">
+            <div class="pp-loading-spinner"></div>
+        </div>
+
+        <!-- ERROR -->
+        <div class="pp-error" id="ppError" style="display:none">
+            <p id="ppErrorMsg">Failed to load person details.</p>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="pp-content" id="ppContent" style="display:none">
+
+            <!-- HEADER -->
+            <div class="pp-header">
+                <div class="pp-profile-wrap">
+                    <img class="pp-profile-img" id="ppImage"
+                         src="/static/images/placeholder.svg" alt="">
+                </div>
+
+                <div class="pp-header-info">
+                    <h1 class="pp-name" id="ppName"></h1>
+                    <p class="pp-known-for" id="ppKnownFor"></p>
+
+                    <div class="pp-meta-row" id="ppMeta"></div>
+
+                    <div class="pp-bio-wrap">
+                        <h2 class="pp-bio-label">Biography</h2>
+                        <p class="pp-bio" id="ppBio"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILMOGRAPHY -->
+            <section class="pp-section" id="ppFilmography" style="display:none">
+                <div class="pp-film-header">
+                    <h2 class="pp-section-title">Filmography</h2>
+                    <div class="pp-film-controls">
+                        <div class="pp-tabs" id="ppTabs">
+                            <button class="pp-tab active" data-tab="all">All Movies</button>
+                            <button class="pp-tab" data-tab="telugu">Telugu</button>
+                            <button class="pp-tab" data-tab="tv">Web Series</button>
+                            <button class="pp-tab" data-tab="upcoming">Upcoming</button>
+                        </div>
+                        <select class="pp-sort" id="ppSort">
+                            <option value="latest">Latest</option>
+                            <option value="rating">Highest Rated</option>
+                            <option value="popular">Most Popular</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pp-film-grid" id="ppFilmGrid"></div>
+            </section>
+
+        </div><!-- /#ppContent -->
+
+    </div><!-- /.pp-container -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/person.js') }}"></script>
+{% endblock %}

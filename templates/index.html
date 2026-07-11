@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}CineMantra — Discover Cinema{% endblock %}
+
+{% block content %}
+
+<!-- HERO BANNER -->
+<section class="hero-banner" id="heroBanner">
+    <!-- Static placeholder slide — replaced by JS on load -->
+    <div class="hero-slide active" id="heroPlaceholder">
+        <div class="hero-bg-placeholder"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-left">
+                <span class="trending-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    #1 Trending Telugu
+                </span>
+                <h1 class="hero-title">Loading...</h1>
+                <div class="hero-meta">
+                    <span class="hero-year">—</span>
+                    <span class="hero-dot">•</span>
+                    <span class="hero-rating">
+                        <svg viewBox="0 0 24 24" fill="#FFD54F" stroke="#FFD54F" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        —
+                    </span>
+                    <span class="hero-dot">•</span>
+                    <span class="hero-cert">UA</span>
+                </div>
+                <p class="hero-overview">Fetching trending movies...</p>
+                <div class="hero-genres"></div>
+                <div class="hero-actions">
+                    <button class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Watch Trailer
+                    </button>
+                    <button class="btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Watch Later
+                    </button>
+                    <button class="btn-icon" aria-label="Add to favorites">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="hero-right">
+                <div class="hero-poster-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span>Movie Poster</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Slider controls are direct children of heroBanner, NOT inside a slide -->
+    <div class="hero-slider-controls">
+        <button class="slider-btn prev" id="heroPrev" aria-label="Previous">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="slider-dots" id="sliderDots">
+            <button class="dot active" data-index="0"></button>
+        </div>
+        <button class="slider-btn next" id="heroNext" aria-label="Next">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+    </div>
+</section>
+
+<!-- QUICK ACTIONS -->
+<section class="quick-actions">
+    <button class="qa-btn active" data-filter="trending">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Trending
+    </button>
+    <button class="qa-btn" data-filter="toprated">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Top Rated
+    </button>
+    <button class="qa-btn" data-filter="new">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        New Releases
+    </button>
+    <button class="qa-btn" data-filter="upcoming">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Upcoming
+    </button>
+    <button class="qa-btn" data-filter="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
+        History
+    </button>
+    <button class="qa-btn surprise" data-filter="surprise">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Surprise Me
+    </button>
+    <button class="qa-btn" data-filter="watchlater">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Watch Later
+    </button>
+    <button class="qa-btn" data-filter="favorites">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Favorites
+    </button>
+</section>
+
+<!-- CONTENT ROWS -->
+<div class="content-rows">
+
+    {% set sections = [
+        ("te-trending",    "🔥 Trending Telugu",           "Most watched Telugu movies right now"),
+        ("te-popular",     "🎬 Popular Telugu Movies",     "All-time Telugu crowd favourites"),
+        ("te-toprated",    "⭐ Top Rated Telugu",          "Critically acclaimed Telugu cinema"),
+        ("te-upcoming",    "🎬 Latest Telugu Releases",    "New & upcoming Telugu movies"),
+        ("te-nowplaying",  "🍿 Now Playing Telugu",        "Currently in theatres"),
+        ("te-webseries",   "📺 Trending Telugu Web Series","Top Telugu OTT originals"),
+        ("te-ott",         "🌐 Top Telugu OTT Releases",   "Best Telugu streaming picks"),
+        ("te-classics",    "🏆 Classic Telugu Movies",     "Timeless Telugu masterpieces"),
+        ("te-family",      "👨‍👩‍👧 Family Entertainers",        "Telugu movies for the whole family"),
+        ("te-comedy",      "😂 Telugu Comedy",             "Laugh-out-loud Telugu hits"),
+        ("te-action",      "⚔ Telugu Action",             "High-octane Telugu action"),
+        ("te-romance",     "❤️ Telugu Romance",            "Best Telugu love stories"),
+        ("te-thriller",    "🔎 Telugu Thrillers",          "Edge-of-your-seat Telugu suspense"),
+        ("te-crime",       "🕵️ Telugu Crime",              "Gripping Telugu crime dramas"),
+        ("te-horror",      "👻 Telugu Horror",             "Spine-chilling Telugu horror"),
+        ("te-historical",  "🏛 Historical",                "Epic Telugu period dramas"),
+        ("te-mythological","🕉 Mythological",              "Telugu mythological epics"),
+        ("continue",       "Continue Watching",           "Pick up where you left off"),
+        ("recent",         "Recently Viewed",             "Your watch history"),
+        ("favorites",      "My Favorites",                "Movies you love"),
+        ("watchlist",      "My Watchlist",                "Saved for later")
+    ] %}
+
+    {% for id, title, subtitle in sections %}
+    <section class="content-row" id="row-{{ id }}">
+        <div class="row-header">
+            <div class="row-titles">
+                <h2 class="row-title">{{ title }}</h2>
+                <p class="row-subtitle">{{ subtitle }}</p>
+            </div>
+            <a href="#" class="view-all">
+                View All
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+        </div>
+        <div class="cards-scroll-wrapper">
+            <button class="scroll-btn scroll-left" aria-label="Scroll left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="cards-row" data-row="{{ id }}">
+                {% for i in range(8) %}
+                <div class="movie-card is-skeleton">
+                    <div class="card-poster">
+                        <div class="card-poster-skel skeleton"></div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-title-skel skeleton"></div>
+                        <div class="card-genre-skel skeleton"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="scroll-btn scroll-right" aria-label="Scroll right">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+        </div>
+    </section>
+    {% endfor %}
+
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+    <div class="footer-top">
+        <div class="footer-brand">
+            <span class="footer-logo">Cine<span>Mantra</span></span>
+            <p>Your ultimate destination for cinema discovery.</p>
+        </div>
+        <div class="footer-links">
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <a href="#">Movies</a>
+                <a href="#">Web Series</a>
+                <a href="#">Trending</a>
+                <a href="#">Top Rated</a>
+            </div>
+            <div class="footer-col">
+                <h4>Account</h4>
+                <a href="#">Profile</a>
+                <a href="#">Watchlist</a>
+                <a href="#">Favorites</a>
+                <a href="#">History</a>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <a href="#">About</a>
+                <a href="#">Contact</a>
+                <a href="#">Support</a>
+                <a href="#">Privacy</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 CineMantra. All rights reserved.</p>
+        <p>Built with Flask &amp; Vanilla JS</p>
+    </div>
+</footer>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% endblock %}

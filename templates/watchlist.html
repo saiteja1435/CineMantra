@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}My Watchlist — CineMantra{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/watchlist.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="wl-page">
+
+    <!-- PAGE HEADER -->
+    <div class="wl-header">
+        <div class="wl-header-left">
+            <h1 class="wl-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                My Watchlist
+            </h1>
+            <p class="wl-subtitle" id="wlCount">Loading...</p>
+        </div>
+        <a href="/watchlist" class="wl-manage-btn" id="wlViewAll">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Manage
+        </a>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="wl-controls">
+        <div class="wl-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="wlSearch" placeholder="Search your watchlist..." autocomplete="off">
+        </div>
+        <div class="wl-filters" id="wlFilters">
+            <button class="wl-filter active" data-filter="all">All</button>
+            <button class="wl-filter" data-filter="watching">Watching</button>
+            <button class="wl-filter" data-filter="completed">Completed</button>
+            <button class="wl-filter" data-filter="favorites">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                Favorites
+            </button>
+        </div>
+        <select class="wl-sort" id="wlSort">
+            <option value="recent">Recently Added</option>
+            <option value="user_rating">My Rating</option>
+            <option value="rating">TMDB Rating</option>
+            <option value="release">Release Date</option>
+            <option value="title">Title A–Z</option>
+        </select>
+    </div>
+
+    <!-- GRID -->
+    <div class="wl-grid" id="wlGrid">
+        {% for i in range(8) %}
+        <div class="wl-card wl-card-skel">
+            <div class="wl-card-poster skeleton"></div>
+            <div class="wl-card-body">
+                <div class="wl-skel-line w70 skeleton"></div>
+                <div class="wl-skel-line w45 skeleton"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="wl-empty" id="wlEmpty" style="display:none">
+        <div class="wl-empty-icon">
+            <svg viewBox="0 0 120 120" fill="none">
+                <circle cx="60" cy="60" r="56" stroke="rgba(229,9,20,0.15)" stroke-width="2"/>
+                <circle cx="60" cy="60" r="40" stroke="rgba(229,9,20,0.1)" stroke-width="1.5"/>
+                <path d="M40 50 Q60 30 80 50 Q80 75 60 88 Q40 75 40 50Z" fill="rgba(229,9,20,0.08)" stroke="rgba(229,9,20,0.3)" stroke-width="1.5"/>
+                <circle cx="60" cy="38" r="6" fill="rgba(229,9,20,0.2)" stroke="rgba(229,9,20,0.4)" stroke-width="1.5"/>
+                <line x1="60" y1="44" x2="60" y2="72" stroke="rgba(229,9,20,0.4)" stroke-width="2" stroke-linecap="round"/>
+                <line x1="60" y1="78" x2="60" y2="82" stroke="rgba(229,9,20,0.4)" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <h2 class="wl-empty-title" id="wlEmptyTitle">Your Watchlist is Empty</h2>
+        <p class="wl-empty-sub" id="wlEmptySub">Start adding movies to keep track of what you want to watch.</p>
+        <a href="/" class="btn-primary wl-empty-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Discover Movies
+        </a>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         AI TASTE SUMMARY
+    ═══════════════════════════════════════════════════════ -->
+    <section class="wl-ai-section" id="wlTasteSection" style="display:none">
+        <div class="wl-section-header">
+            <h2 class="wl-section-title">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>
+                Your AI Taste Profile
+            </h2>
+            <button class="wl-refresh-btn" id="wlTasteRefresh" title="Refresh analysis">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            </button>
+        </div>
+
+        <div class="wl-taste-card" id="wlTasteCard">
+            <!-- skeleton -->
+            <div class="wl-taste-skel">
+                <div class="wl-skel-line w90 skeleton"></div>
+                <div class="wl-skel-line w75 skeleton"></div>
+                <div class="wl-skel-line w60 skeleton"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         AI PERSONALIZED RECOMMENDATIONS
+    ═══════════════════════════════════════════════════════ -->
+    <section class="wl-ai-section" id="wlRecsSection" style="display:none">
+        <div class="wl-section-header">
+            <h2 class="wl-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Recommended For You
+            </h2>
+        </div>
+        <div id="wlRecsBody"></div>
+    </section>
+
+</div>
+
+<!-- RATE MODAL -->
+<div class="wl-modal" id="wlRateModal">
+    <div class="wl-modal-box">
+        <h3>Rate this Movie</h3>
+        <p id="wlRateTitle" style="font-weight:700;color:var(--text);margin-bottom:1rem;"></p>
+        <div class="wl-star-row" id="wlStarRow">
+            {% for i in range(1, 11) %}
+            <button class="wl-star-btn" data-val="{{ i }}">{{ i }}</button>
+            {% endfor %}
+        </div>
+        <div class="wl-modal-actions" style="margin-top:1.25rem">
+            <button class="wl-modal-cancel" id="wlRateCancel">Cancel</button>
+            <button class="wl-modal-confirm" id="wlRateConfirm">Save Rating</button>
+        </div>
+    </div>
+</div>
+
+<!-- NOTES MODAL -->
+<div class="wl-modal" id="wlNotesModal">
+    <div class="wl-modal-box">
+        <h3>Personal Notes</h3>
+        <p id="wlNotesTitle" style="font-weight:700;color:var(--text);margin-bottom:0.75rem;"></p>
+        <textarea id="wlNotesInput" class="wl-notes-input" placeholder="Write your thoughts about this movie..." rows="4"></textarea>
+        <div class="wl-modal-actions" style="margin-top:1rem">
+            <button class="wl-modal-cancel" id="wlNotesCancel">Cancel</button>
+            <button class="wl-modal-confirm" id="wlNotesConfirm">Save Notes</button>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="wl-modal" id="wlModal">
+    <div class="wl-modal-box">
+        <h3>Remove from Watchlist?</h3>
+        <p id="wlModalMsg">This movie will be removed from your watchlist.</p>
+        <div class="wl-modal-actions">
+            <button class="wl-modal-cancel" id="wlModalCancel">Cancel</button>
+            <button class="wl-modal-confirm" id="wlModalConfirm">Remove</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/watchlist.js') }}"></script>
+{% endblock %}

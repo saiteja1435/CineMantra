@@ -1,0 +1,288 @@
+/* ============================================================
+   CARDS SCROLL ROW
+   ============================================================ */
+.cards-scroll-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cards-row {
+    display: flex;
+    gap: 0.85rem;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    padding: 0.5rem 2rem 1rem;
+    -webkit-overflow-scrolling: touch;
+}
+.cards-row::-webkit-scrollbar { display: none; }
+
+.scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: all var(--transition);
+    pointer-events: none;
+}
+.scroll-btn svg { width: 16px; height: 16px; }
+
+.cards-scroll-wrapper:hover .scroll-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+.scroll-btn:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+.scroll-left  { left: 0.5rem; }
+.scroll-right { right: 0.5rem; }
+
+/* ============================================================
+   MOVIE CARD
+   ============================================================ */
+.movie-card {
+    flex-shrink: 0;
+    width: 160px;
+    cursor: pointer;
+    transition: transform var(--transition);
+}
+
+.movie-card:hover { transform: scale(1.06); z-index: 5; }
+
+.card-poster {
+    position: relative;
+    width: 160px;
+    height: 240px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+}
+
+.poster-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
+}
+.poster-placeholder svg { width: 40px; height: 40px; }
+
+/* Hover Overlay */
+.card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(8,11,20,0.95) 0%, rgba(8,11,20,0.4) 50%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+}
+.movie-card:hover .card-overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.card-play-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px var(--primary-glow);
+    transition: transform var(--transition);
+    margin-bottom: auto;
+    margin-top: auto;
+}
+.card-play-btn svg { width: 18px; height: 18px; margin-left: 2px; }
+.card-play-btn:hover { transform: scale(1.12); }
+
+.card-overlay-actions {
+    display: flex;
+    gap: 0.4rem;
+    padding-bottom: 0.75rem;
+    margin-top: auto;
+}
+.card-overlay-actions button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+.card-overlay-actions button svg { width: 13px; height: 13px; }
+.card-overlay-actions button:hover { background: var(--primary); border-color: var(--primary); }
+
+/* Rating Badge */
+.rating-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    background: rgba(8,11,20,0.85);
+    backdrop-filter: blur(4px);
+    border-radius: 99px;
+    padding: 3px 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--secondary);
+    border: 1px solid rgba(255,213,79,0.2);
+}
+.rating-badge svg { width: 10px; height: 10px; }
+
+/* Card Info */
+.card-info {
+    padding: 0.6rem 0.25rem 0;
+}
+
+.card-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+}
+
+.card-genre {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Card hover shadow */
+.movie-card:hover .card-poster {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 0 1px var(--primary);
+}
+
+/* ============================================================
+   SKELETON LOADING
+   ============================================================ */
+@keyframes shimmer {
+    0%   { background-position: -600px 0; }
+    100% { background-position:  600px 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg,
+        var(--bg-elevated) 25%,
+        var(--bg-card)     50%,
+        var(--bg-elevated) 75%
+    );
+    background-size: 600px 100%;
+    animation: shimmer 1.4s infinite linear;
+    border-radius: var(--radius-sm);
+}
+
+.movie-card.is-skeleton .card-poster {
+    background: none;
+    border-color: transparent;
+}
+
+.movie-card.is-skeleton .poster-placeholder { display: none; }
+.movie-card.is-skeleton .card-overlay       { display: none; }
+.movie-card.is-skeleton .rating-badge       { display: none; }
+
+.movie-card.is-skeleton .card-poster-skel {
+    width: 100%;
+    height: 100%;
+}
+
+.movie-card.is-skeleton .card-title-skel {
+    height: 12px;
+    width: 80%;
+    margin-top: 0.6rem;
+}
+
+.movie-card.is-skeleton .card-genre-skel {
+    height: 10px;
+    width: 55%;
+    margin-top: 0.4rem;
+}
+
+/* ============================================================
+   HERO REAL IMAGE
+   ============================================================ */
+.hero-bg-real {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center top;
+    transition: opacity 0.8s ease;
+}
+
+.hero-poster-img {
+    width: 220px;
+    height: 320px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    display: block;
+}
+
+/* ============================================================
+   CARD REAL POSTER IMAGE
+   ============================================================ */
+.card-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.3s ease;
+}
+
+.card-poster img.lazy { opacity: 0; }
+.card-poster img.loaded { opacity: 1; }
+
+/* ============================================================
+   RECOMMENDATION REASON BADGE
+   ============================================================ */
+.reason-badge {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.3rem 0.5rem;
+    background: linear-gradient(to top, rgba(229,9,20,0.92) 0%, transparent 100%);
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.3px;
+    opacity: 0;
+    transition: opacity var(--transition);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+.movie-card:hover .reason-badge { opacity: 1; }
