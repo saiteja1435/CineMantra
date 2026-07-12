@@ -21,3 +21,13 @@ def search_page():
 @home_bp.route("/person/<int:person_id>")
 def person_page(person_id):
     return render_template("person.html", person_id=person_id)
+
+
+@home_bp.route("/webseries")
+def webseries_page():
+    return render_template("webseries.html")
+
+
+@home_bp.route("/webseries/<int:tv_id>")
+def webseries_detail(tv_id):
+    return render_template("webseries_detail.html", tv_id=tv_id)

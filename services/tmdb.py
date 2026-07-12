@@ -97,6 +97,11 @@ def _enrich(movie: dict) -> dict:
     # Direct TMDB CDN — w342 for posters (faster, smaller), w1280 for backdrops
     movie["poster_url"]   = f"https://image.tmdb.org/t/p/w342{p}"  if p else None
     movie["backdrop_url"] = f"https://image.tmdb.org/t/p/w1280{b}" if b else None
+    # Normalise TV show fields so JS treats them identically to movies
+    if not movie.get("title") and movie.get("name"):
+        movie["title"] = movie["name"]
+    if not movie.get("release_date") and movie.get("first_air_date"):
+        movie["release_date"] = movie["first_air_date"]
     return movie
 
 
@@ -179,6 +184,83 @@ def getTeluguNowPlaying() -> list: return _te_discover({"with_release_type": "2|
 
 def getTeluguWebSeries()  -> list: return _te_discover_tv()
 def getTeluguOTT()        -> list: return _te_discover_tv({"with_watch_monetization_types": "flatrate|free"})
+def getTeluguWebSeriesTopRated() -> list: return _te_discover_tv({"sort_by": "vote_average.desc", "vote_count.gte": "20"})
+def getTeluguWebSeriesNew()      -> list: return _te_discover_tv({"sort_by": "first_air_date.desc"})
+def getTeluguWebSeriesByGenre(genre_id: int) -> list: return _te_discover_tv({"with_genres": str(genre_id)})
+
+
+# ── TV Show Detail ────────────────────────────────────────────
+
+def getTVDetails(tv_id: int) -> dict | None:
+    try:
+        return _enrich(_fetch(f"/tv/{tv_id}"))
+    except Exception as e:
+        print(f"[TMDB] getTVDetails({tv_id}) failed: {e}", flush=True)
+        return None
+
+def getTVCredits(tv_id: int) -> dict | None:
+    try:
+        return _fetch(f"/tv/{tv_id}/credits")
+    except Exception as e:
+        print(f"[TMDB] getTVCredits({tv_id}) failed: {e}", flush=True)
+        return None
+
+def getTVImages(tv_id: int) -> dict | None:
+    try:
+        return _fetch(f"/tv/{tv_id}/images", {"include_image_language": "en,null"})
+    except Exception as e:
+        print(f"[TMDB] getTVImages({tv_id}) failed: {e}", flush=True)
+        return None
+
+def getTVVideos(tv_id: int) -> dict | None:
+    try:
+        return _fetch(f"/tv/{tv_id}/videos")
+    except Exception as e:
+        print(f"[TMDB] getTVVideos({tv_id}) failed: {e}", flush=True)
+        return None
+
+def getTVRecommendations(tv_id: int) -> list:
+    try:
+        return _list(f"/tv/{tv_id}/recommendations")
+    except Exception as e:
+        print(f"[TMDB] getTVRecommendations({tv_id}) failed: {e}", flush=True)
+        return []
+
+def getTVSimilar(tv_id: int) -> list:
+    try:
+        return _list(f"/tv/{tv_id}/similar")
+    except Exception as e:
+        print(f"[TMDB] getTVSimilar({tv_id}) failed: {e}", flush=True)
+        return []
+
+def getTVWatchProviders(tv_id: int) -> dict | None:
+    try:
+        return _fetch(f"/tv/{tv_id}/watch/providers")
+    except Exception as e:
+        print(f"[TMDB] getTVWatchProviders({tv_id}) failed: {e}", flush=True)
+        return None
+
+def getTVCore(tv_id: int) -> dict:
+    tasks = {
+        "details":   lambda: getTVDetails(tv_id),
+        "credits":   lambda: getTVCredits(tv_id),
+        "images":    lambda: getTVImages(tv_id),
+        "videos":    lambda: getTVVideos(tv_id),
+        "providers": lambda: getTVWatchProviders(tv_id),
+        "similar":   lambda: getTVSimilar(tv_id),
+        "recommended": lambda: getTVRecommendations(tv_id),
+    }
+    result = {}
+    with ThreadPoolExecutor(max_workers=7) as ex:
+        futures = {ex.submit(fn): k for k, fn in tasks.items()}
+        for f in as_completed(futures):
+            k = futures[f]
+            try:
+                result[k] = f.result()
+            except Exception as e:
+                print(f"[TMDB] getTVCore {k!r} failed: {e}", flush=True)
+                result[k] = None
+    return result
 
 def getTeluguClassics()   -> list:
     return _te_discover({"primary_release_date.lte": "2000-12-31",

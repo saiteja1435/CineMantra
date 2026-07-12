@@ -196,4 +196,31 @@ window.Toast = Toast;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('CineMantra loaded');
+
+    /* ── Sidebar toggle ──────────────────────────────────── */
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar       = document.getElementById('sidebar');
+    const mainContent   = document.getElementById('mainContent');
+
+    // Restore saved state
+    if (localStorage.getItem('cm-sidebar-collapsed') === 'true') {
+        sidebar?.classList.add('collapsed');
+        mainContent?.classList.add('sidebar-collapsed');
+    }
+
+    sidebarToggle?.addEventListener('click', () => {
+        const isCollapsed = sidebar.classList.toggle('collapsed');
+        mainContent?.classList.toggle('sidebar-collapsed', isCollapsed);
+        localStorage.setItem('cm-sidebar-collapsed', isCollapsed);
+    });
+
+    /* ── Active nav item ─────────────────────────────────── */
+    const path = window.location.pathname;
+    document.querySelectorAll('.nav-item a').forEach(a => {
+        const href = a.getAttribute('href');
+        if (href === '#') return;
+        if (href === '/' ? path === '/' : path.startsWith(href)) {
+            a.closest('.nav-item')?.classList.add('active');
+        }
+    });
 });

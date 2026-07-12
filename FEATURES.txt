@@ -1,0 +1,715 @@
+================================================================
+  CINEMANTRA — COMPLETE FEATURES LIST
+  Last updated: 2025
+================================================================
+
+
+----------------------------------------------------------------
+  1. PROJECT FOUNDATION
+----------------------------------------------------------------
+
+  - Python + Flask web application
+  - Blueprint-based modular routing (home, api, watchlist)
+  - Jinja2 HTML templating with reusable base.html layout
+  - python-dotenv for environment variable management (.env)
+  - SQLite database (cinemantra.db) via database/db.py
+  - Static file serving (CSS, JS, images)
+  - Production-ready project structure
+
+
+----------------------------------------------------------------
+  2. UI / FRONTEND DESIGN
+----------------------------------------------------------------
+
+  - Dark Netflix-style theme (#080B14 background)
+  - CSS custom properties (design tokens) for full theme control
+  - Light / Dark theme toggle with localStorage persistence
+  - Glassmorphism top header (backdrop-filter blur)
+  - Fully responsive layout — Desktop, Laptop, Tablet, Mobile
+  - Smooth CSS transitions and hover animations
+  - Custom scrollbar styling
+  - Fade-in-up animation on content rows
+  - No Bootstrap, no Tailwind, no React — pure CSS3
+
+
+----------------------------------------------------------------
+  3. TOP HEADER (80px, sticky, glassmorphism)
+----------------------------------------------------------------
+
+  - CineMantra logo (left)
+  - Hamburger sidebar toggle button (left)
+  - Large centered search bar with search icon
+    - Placeholder: "Search movies, web series, cast, genres..."
+    - Ctrl+K / Cmd+K keyboard shortcut to focus
+    - Live search with 400ms debounce
+  - Language selector dropdown (EN / HI / TA / TE)
+  - Notification bell icon with badge counter
+  - Sun/Moon theme toggle button
+  - User profile avatar with username and chevron
+  - Header background darkens on scroll
+
+
+----------------------------------------------------------------
+  4. LEFT SIDEBAR (240px, fixed)
+----------------------------------------------------------------
+
+  Main Navigation:
+    - Home
+    - Movies
+    - Web Series
+    - Trending  (Hot badge)
+    - New Releases  (New badge)
+    - Top Rated
+    - Upcoming
+    - Watch Later
+    - Favorites
+    - History
+
+  More Section:
+    - Genres
+    - OTT Platforms
+    - Celebrities
+
+  Pages Section:
+    - About
+    - Contact
+    - Support
+
+  - Active page indicator (red left border + gradient highlight)
+  - Hover animation (indent + color change)
+  - Sidebar collapses on desktop (toggle button)
+  - Sidebar slides off-screen on mobile with dark overlay
+  - Overlay click closes sidebar on mobile
+
+  Footer:
+    - Social icons: Twitter, Instagram, YouTube, Discord
+    - Hover lift animation on social icons
+    - Copyright text
+
+
+----------------------------------------------------------------
+  5. HERO BANNER (620px, auto-slider)
+----------------------------------------------------------------
+
+  - Full-width cinematic hero section
+  - Real TMDB backdrop image as background
+  - Gradient overlay (left-heavy, cinematic)
+  - Bottom fade into page background
+
+  Left Side:
+    - Trending badge (#1 Trending Today)
+    - Movie title (large, bold)
+    - Meta row: Release year, Star rating, Certification (UA)
+    - 3-line overview text
+    - Genre tags (Action, Drama, Thriller, etc.)
+    - Watch Trailer button (red, with glow)
+    - Watch Later button (glass effect)
+    - Add to Favorites icon button
+
+  Right Side:
+    - Real TMDB movie poster image
+    - Rounded corners, deep shadow
+
+  Slider Controls:
+    - Previous / Next arrow buttons
+    - Animated dot indicators (active dot expands)
+    - Auto-rotates every 8 seconds
+    - Manual navigation resets auto-timer
+    - Smooth fade transition between slides
+    - 5 trending movies loaded from TMDB
+
+
+----------------------------------------------------------------
+  6. QUICK ACTION BUTTONS
+----------------------------------------------------------------
+
+  - Trending
+  - Top Rated
+  - New Releases
+  - Upcoming
+  - History
+  - Surprise Me  (yellow accent)
+  - Watch Later
+  - Favorites
+
+  - Active state highlight (red background)
+  - Horizontal scroll on mobile (no scrollbar)
+
+
+----------------------------------------------------------------
+  7. CONTENT ROWS (8 sections)
+----------------------------------------------------------------
+
+  Sections:
+    - Recommended For You  (Now Playing / Search results)
+    - Trending Movies       (TMDB /trending/movie/week)
+    - Popular Movies        (TMDB /movie/popular)
+    - Top Rated             (TMDB /movie/top_rated)
+    - Upcoming              (TMDB /movie/upcoming)
+    - Continue Watching     (from local DB recent history)
+    - Favorites             (from local DB watchlist)
+    - Watchlist             (from local DB watchlist)
+
+  Each section has:
+    - Section title
+    - Subtitle description
+    - "View All" link with animated chevron
+    - Horizontal scroll container
+    - Left / Right scroll arrow buttons (appear on hover)
+    - Smooth scroll (480px per click)
+
+
+----------------------------------------------------------------
+  8. MOVIE CARDS
+----------------------------------------------------------------
+
+  - 160x240px poster card
+  - Real TMDB poster image (w500 CDN)
+  - Fallback: backdrop image if no poster
+  - Fallback: local placeholder SVG if both missing
+  - Lazy loading via IntersectionObserver (200px root margin)
+  - Fade-in on image load
+  - Broken image fallback (onerror handler)
+
+  Rating Badge:
+    - Star icon + TMDB vote_average score
+    - Positioned top-right of poster
+
+  Card Info:
+    - Movie title (truncated with ellipsis)
+    - Genre names + Release year
+
+  Hover Effects:
+    - Scale up (1.06x)
+    - Red border glow on poster
+    - Deep shadow
+    - Overlay appears with:
+        - Red play button (center)
+        - Add to Watchlist button
+        - Like / Favorite button
+        - More Info button
+
+  Click:
+    - Navigates to /movie/<movie_id>
+
+
+----------------------------------------------------------------
+  9. SKELETON LOADING
+----------------------------------------------------------------
+
+  - 8 skeleton cards shown immediately while API loads
+  - Shimmer animation (left-to-right gradient sweep)
+  - Replaced with real cards on API response
+  - Each section loads independently (one failure = others unaffected)
+
+
+----------------------------------------------------------------
+  10. TMDB API INTEGRATION
+----------------------------------------------------------------
+
+  Service: services/tmdb.py
+
+  Functions:
+    - getTrendingMovies()         — /trending/movie/week
+    - getPopularMovies()          — /movie/popular
+    - getTopRatedMovies()         — /movie/top_rated
+    - getUpcomingMovies()         — /movie/upcoming
+    - getNowPlayingMovies()       — /movie/now_playing
+    - searchMovies(query)         — /search/movie
+    - getMovieDetails(id)         — /movie/{id}
+    - getMovieCredits(id)         — /movie/{id}/credits
+    - getMovieImages(id)          — /movie/{id}/images
+    - getMovieVideos(id)          — /movie/{id}/videos
+    - getWatchProviders(id)       — /movie/{id}/watch/providers
+    - getMovieRecommendations(id) — /movie/{id}/recommendations
+    - getMovieSimilar(id)         — /movie/{id}/similar
+    - getMovieCore(id)            — parallel fetch of all movie data
+
+  Telugu-specific functions:
+    - getTeluguTrending()
+    - getTeluguPopular()
+    - getTeluguTopRated()
+    - getTeluguUpcoming()
+    - getTeluguNowPlaying()
+    - getTeluguWebSeries()
+    - getTeluguOTT()
+    - getTeluguClassics()
+    - getTeluguByGenre(genre_id)
+    - searchTeluguMovies(query)
+
+  - Retry logic (5 retries, backoff) via urllib3
+  - DNS resolution check before requests
+  - TCP reachability check
+  - 30-second timeout
+  - TMDB image proxy route (/api/tmdb-img/<path>)
+  - network_test() diagnostic function
+  - All images enriched with poster_url and backdrop_url
+
+
+----------------------------------------------------------------
+  11. FLASK API ROUTES (/api/...)
+----------------------------------------------------------------
+
+  General:
+    GET  /api/health              — API health check
+    GET  /api/debug               — Network diagnostic
+    GET  /api/network-test        — Full connectivity test
+    GET  /api/cache/clear         — Clear in-memory cache
+
+  TMDB Movie Lists:
+    GET  /api/trending            — Trending movies
+    GET  /api/popular             — Popular movies
+    GET  /api/top-rated           — Top rated movies
+    GET  /api/upcoming            — Upcoming movies
+    GET  /api/now-playing         — Now playing movies
+    GET  /api/search?q=           — Search movies
+
+  Telugu Routes:
+    GET  /api/telugu/trending
+    GET  /api/telugu/popular
+    GET  /api/telugu/top-rated
+    GET  /api/telugu/upcoming
+    GET  /api/telugu/now-playing
+    GET  /api/telugu/web-series
+    GET  /api/telugu/ott
+    GET  /api/telugu/classics
+    GET  /api/telugu/comedy
+    GET  /api/telugu/action
+    GET  /api/telugu/romance
+    GET  /api/telugu/thriller
+    GET  /api/telugu/crime
+    GET  /api/telugu/family
+    GET  /api/telugu/horror
+    GET  /api/telugu/historical
+    GET  /api/telugu/mythological
+    GET  /api/telugu/search?q=
+
+  Movie Detail:
+    GET  /api/movie/<id>          — Details + credits + images + providers + similar
+    GET  /api/movie/<id>/streaming — OTT providers (IN region) + YouTube trailer
+    GET  /api/movie/<id>/videos   — TMDB videos + best trailer pick
+    GET  /api/movie/<id>/recommendations — Grouped Telugu recommendations
+
+  Smart Search:
+    GET  /api/smart-search?q=     — AI-powered search with intent detection
+
+  YouTube:
+    GET  /api/youtube/trailer?q=
+    GET  /api/youtube/teaser?q=
+    GET  /api/youtube/behind?q=
+    GET  /api/youtube/interviews?q=
+    GET  /api/youtube/featurettes?q=
+    GET  /api/youtube/deleted?q=
+    GET  /api/youtube/songs?q=
+
+  Serper (Google Search):
+    GET  /api/reviews/<movie_name>
+    GET  /api/news/<movie_name>
+    GET  /api/articles/<movie_name>
+    GET  /api/boxoffice/<movie_name>
+    GET  /api/latestnews/<movie_name>
+    GET  /api/aireview/<movie_name>
+
+  AI Endpoints:
+    POST /api/ai/search           — AI search agent (Gemini)
+    POST /api/ai/recommend        — AI movie recommendations (Gemini)
+
+  Person / Actor:
+    GET  /api/person/<id>
+    GET  /api/person/<id>/credits
+    GET  /api/person/<id>/collaborators
+    GET  /api/person/<id>/similar
+    GET  /api/person/<id>/news?name=
+    GET  /api/person/<id>/videos?name=
+    GET  /api/person/search?q=
+
+  Recommendations:
+    GET  /api/recommend/<movie_id>
+    GET  /api/recommend/<movie_id>/grouped
+    GET  /api/recommend/personalized
+    GET  /api/recommend/trending
+    GET  /api/recommend/top-rated
+
+  All endpoints return:
+    { "ok": true, "results": [...] }
+    or
+    { "ok": false, "error": "..." }
+
+
+----------------------------------------------------------------
+  12. MOVIE DETAIL PAGE (/movie/<id>)
+----------------------------------------------------------------
+
+  Template: templates/movie.html
+  Script:   static/js/movie.js
+  Styles:   static/css/movie.css
+
+  - Full movie details from TMDB
+  - Backdrop hero image
+  - Poster image
+  - Title, tagline, genres, runtime, release date, rating
+  - Overview / synopsis
+  - Watch Trailer button (opens YouTube embed)
+  - Watch Later / Favorite / Watched toggle buttons
+  - OTT streaming providers (IN region)
+  - Cast grid with profile photos and character names
+  - Director, Writer, Music Director credits
+  - YouTube video tabs:
+      Official Trailer, Teaser, Behind the Scenes,
+      Cast Interviews, Featurettes, Deleted Scenes, Songs
+  - AI Review Summary (Gemini-powered, from IMDb reviews)
+      - Overall sentiment (Positive / Mixed / Negative)
+      - Estimated rating
+      - Pros list
+      - Cons list
+      - Highlights
+      - Audience verdict
+      - Recommended for (audience types)
+  - AI Movie Recommendations (Gemini-powered)
+      - Match score (0-100)
+      - Specific reason tied to the movie
+  - Grouped TMDB recommendations:
+      Similar Movies, Same Genre, Same Cast, Same Director
+  - Movie news and articles (Serper)
+  - Box office collection (Serper)
+  - Watchlist status sync (add/remove/favorite/watched)
+
+
+----------------------------------------------------------------
+  13. SEARCH PAGE (/search)
+----------------------------------------------------------------
+
+  Template: templates/search.html
+  Script:   static/js/search.js
+  Styles:   static/css/search.css
+
+  - Smart search with AI intent detection (Gemini)
+  - Fallback: rule-based NLP intent parser
+  - Intent types: person search, discover, keyword search
+  - Filters extracted: language, genre, year, actor, director,
+    OTT platform, sort order, runtime, rating, similar_to
+  - Telugu-only filter enforced on all results
+  - Search history (stored in SQLite, shown as chips)
+  - Search history: delete individual, delete all
+  - Results displayed as movie card grid
+  - AI reason shown on each card ("Why this result")
+  - Live search on input (debounced)
+  - Keyboard shortcut Ctrl+K / Cmd+K
+
+
+----------------------------------------------------------------
+  14. WATCHLIST PAGE (/watchlist)
+----------------------------------------------------------------
+
+  Template: templates/watchlist.html
+  Script:   static/js/watchlist.js
+  Styles:   static/css/watchlist.css
+
+  - View all saved movies
+  - Filter by: All, Watching, Completed, Favorites
+  - Sort by: Date Added, Rating, Title, Release Year
+  - Toggle Favorite (star)
+  - Toggle Watched / Completed
+  - Rate movie (user personal rating 1-10)
+  - Add personal notes
+  - Assign to collection (custom label)
+  - Remove from watchlist
+  - AI Taste Summary (Gemini):
+      - Taste profile description
+      - Favorite genres
+      - Favorite actors
+      - Favorite directors
+      - Preferred runtime
+      - Preferred years
+      - Mood label
+  - AI Personalized Recommendations (5 categories):
+      - Because You Liked
+      - Hidden Gems
+      - Underrated Telugu
+      - Trending For You
+      - Weekend Picks
+  - Recent watch history row
+
+
+----------------------------------------------------------------
+  15. PERSON / CELEBRITY PAGE (/person/<id>)
+----------------------------------------------------------------
+
+  Template: templates/person.html
+  Script:   static/js/person.js
+  Styles:   static/css/person.css
+
+  - Profile photo
+  - Name, biography, birthday, birthplace, gender, popularity
+  - Also known as (alternate names)
+  - Known for department
+  - Movie credits grid (Telugu-filtered)
+  - TV credits
+  - Collaborators:
+      - Frequent directors
+      - Frequent co-actors (with profile photos)
+      - Music directors
+      - Producers
+  - Similar actors
+  - Latest news (Serper)
+  - YouTube video tabs:
+      Interviews, Press Meets, Behind the Scenes,
+      Promotions, Award Functions, Speeches
+
+
+----------------------------------------------------------------
+  16. YOUTUBE INTEGRATION
+----------------------------------------------------------------
+
+  Service: services/youtube.py
+
+  - YouTube Data API v3
+  - 10-minute in-memory cache
+  - Duration parsing (ISO 8601 → human readable)
+  - Video validation (title must match movie name)
+  - Song validation (official music channels + keyword check)
+  - Fallback queries (3 query variants tried in order)
+
+  Functions:
+    - searchOfficialTrailer(movie_name)
+    - searchOfficialTeaser(movie_name)
+    - searchBehindTheScenes(movie_name)
+    - searchCastInterviews(movie_name)
+    - searchFeaturettes(movie_name)
+    - searchDeletedScenes(movie_name)
+    - searchMovieSongs(movie_name)
+    - searchTeluguTrailer(movie_name)
+    - searchTeluguSongs(movie_name)
+
+
+----------------------------------------------------------------
+  17. SERPER (GOOGLE SEARCH) INTEGRATION
+----------------------------------------------------------------
+
+  Service: services/serper.py
+
+  - Google Serper API
+  - 10-minute in-memory cache
+  - Parallel queries via ThreadPoolExecutor
+  - Deduplication by URL
+  - Date-sorted results (newest first)
+
+  Functions:
+    - getMovieReviews(movie_name)      — IMDb + RT reviews
+    - getMovieNews(movie_name)         — Latest news
+    - getMovieArticles(movie_name)     — Features and articles
+    - getMovieBoxOffice(movie_name)    — Box office collection
+    - getMovieLatestNews(movie_name)   — Merged reviews + news
+    - getTeluguMovieReviews(movie_name)
+    - getTeluguMovieNews(movie_name)
+
+
+----------------------------------------------------------------
+  18. AI FEATURES (Google Gemini)
+----------------------------------------------------------------
+
+  Service: services/ai_review.py
+    - Collects IMDb user reviews via Serper (3 parallel queries)
+    - Sends reviews to Gemini for structured analysis
+    - Returns: summary, sentiment, rating estimate, pros, cons,
+      highlights, audience verdict, recommended_for
+    - Skips unreleased / upcoming movies automatically
+    - Fallback: builds summary directly from Serper snippets
+      (no hallucination — only what reviews say)
+    - 24-hour cache
+    - Tries 4 Gemini models in order (quota fallback)
+
+  Service: services/ai_recommend.py
+    - Fetches TMDB keywords, similar movies, recommendations
+    - Collects web context via Serper (audience opinions)
+    - Sends all data to Gemini for ranked recommendations
+    - Returns: reason, recommendations with match_score (0-100)
+    - Fallback: TMDB-based recommendations if Gemini fails
+    - Enriches results with poster/backdrop URLs
+    - 24-hour cache
+
+  Service: services/ai_search.py
+    - Extracts structured filters from natural language query
+    - Filters: language, genre, year, actor, director, OTT,
+      sort, runtime, rating, similar_to, free_text
+    - Builds TMDB Discover query from filters
+    - Person search (actor/director name → TMDB person ID)
+    - Similar movie search
+    - Serper OTT enrichment
+    - Attaches AI reason to each result
+    - Telugu-only filter enforced
+    - 30-minute cache
+    - Fallback: rule-based NLP parser
+
+  Service: services/ai_watchlist.py
+    - Analyzes watchlist to build taste profile (Gemini)
+    - Returns: taste_summary, favorite_genres, favorite_actors,
+      favorite_directors, preferred_runtime, preferred_years, mood
+    - Generates 5-category personalized recommendations (Gemini)
+    - Enriches recommendations with TMDB poster/backdrop
+    - Fallback: rule-based taste analysis + TMDB discover
+    - Persists taste profile to SQLite user_preferences table
+
+
+----------------------------------------------------------------
+  19. SMART SEARCH
+----------------------------------------------------------------
+
+  Service: services/smart_search.py
+
+  - Pure rule-based NLP (no AI dependency)
+  - Intent detection: person | discover | keyword search
+  - Extracts: language, genre, year, sort order
+  - Person detection patterns (e.g. "Mahesh Babu movies")
+  - Telugu-only filter enforced on all results
+  - Fallback chain: discover → keyword search → Telugu popular
+  - 10-minute cache
+
+
+----------------------------------------------------------------
+  20. RECOMMENDATION ENGINE
+----------------------------------------------------------------
+
+  Service: services/recommendation.py
+
+  Functions:
+    - recommendByGenre(movie_id)       — Same genre Telugu movies
+    - recommendByCast(movie_id)        — Top 3 cast members' movies
+    - recommendByDirector(movie_id)    — Same director's movies
+    - recommendBySimilarMovies(movie_id) — TMDB similar (Telugu)
+    - recommendTrending()
+    - recommendTopRated()
+    - recommendUpcoming()
+    - recommendFromWatchlist(ids)
+    - recommendFromFavorites(ids)
+    - recommendPersonalized(history, favorites, watchlist)
+    - recommendForMovie(movie_id)      — Blended with reasons
+    - getMovieRecommendationsGrouped(movie_id) — 5 buckets parallel
+
+  - Parallel fetch via ThreadPoolExecutor
+  - Scored blend (similar=3pts, genre=2pts, cast=2pts, director=3pts)
+  - Telugu-only filter on all results
+  - 10-minute cache
+
+
+----------------------------------------------------------------
+  21. PERSON / CELEBRITY SERVICE
+----------------------------------------------------------------
+
+  Service: services/person.py
+
+  Functions:
+    - getPersonDetails(id)
+    - getPersonMovieCredits(id)
+    - getPersonTVCredits(id)
+    - getPersonCombinedCredits(id)
+    - getPersonImages(id)
+    - getPersonCore(id)              — Parallel fetch of all data
+    - searchPerson(query)
+    - getTeluguActors(page)
+    - enrichMovieCredits(credits)
+    - enrichTVCredits(credits)
+    - getSimilarActors(person_id, credits)
+    - getCollaborators(person_id, credits)
+
+  - 1-hour cache
+  - Profile photo URL enrichment
+
+
+----------------------------------------------------------------
+  22. DATABASE (SQLite)
+----------------------------------------------------------------
+
+  File: database/db.py
+  DB:   cinemantra.db
+
+  Tables:
+    watchlist:
+      - movie_id, title, poster, backdrop, rating, release_date
+      - status (watching / completed)
+      - favorite (bool)
+      - watched (bool)
+      - user_rating (personal 1-10 score)
+      - notes (personal text notes)
+      - collection (custom label)
+      - genres, language, runtime
+      - created_at
+
+    recent:
+      - movie_id, title, poster, backdrop, rating, release_date
+      - viewed_at (auto-updated on re-visit)
+
+    user_preferences:
+      - taste_summary, favorite_genres, favorite_actors
+      - favorite_directors, preferred_runtime, preferred_years
+      - mood, updated_at
+
+    search_history:
+      - query, searched_at
+      - Max 50 entries (auto-pruned)
+      - Deduplication on insert
+
+  Operations:
+    Watchlist: get_all, get_one, add, add_full, remove,
+               toggle_favorite, toggle_watched, rate, set_notes,
+               set_collection
+    Recent:    add (upsert), get
+    Prefs:     get, save (upsert)
+    Search History: add, get, delete_one, delete_all
+
+
+----------------------------------------------------------------
+  23. PERFORMANCE & RELIABILITY
+----------------------------------------------------------------
+
+  - TMDB responses cached in-memory (5 min default)
+  - AI responses cached 24 hours
+  - YouTube responses cached 10 minutes
+  - Serper responses cached 10 minutes
+  - Smart search cached 10 minutes
+  - Recommendation results cached 10 minutes
+  - Person data cached 1 hour
+  - Each API section loads independently (isolated try/except)
+  - One section failure never blocks other sections
+  - Retry logic on TMDB (5 retries, exponential backoff)
+  - DNS + TCP reachability check before TMDB calls
+  - Graceful degradation: AI fails → TMDB fallback
+  - Gemini model fallback chain (4 models tried in order)
+  - Lazy image loading (IntersectionObserver, 200px margin)
+  - Skeleton loading shown immediately while data loads
+  - Image fallback chain: poster → backdrop → local SVG
+  - Parallel data fetching (ThreadPoolExecutor) for movie core
+  - TMDB image proxy route for server-side image serving
+
+
+----------------------------------------------------------------
+  24. ENVIRONMENT VARIABLES (.env)
+----------------------------------------------------------------
+
+  REQUIRED:
+    SECRET_KEY          — Flask session secret
+    TMDB_API_KEY        — The Movie Database API key
+    DEBUG               — Flask debug mode (True/False)
+
+  OPTIONAL (enables extra features):
+    YOUTUBE_API_KEY     — YouTube Data API v3 (trailers, songs)
+    SERPER_API_KEY      — Google Serper API (reviews, news)
+    GEMINI_API_KEY      — Google Gemini AI (reviews, recommendations)
+    TMDB_PROXY          — HTTP proxy for TMDB (if ISP blocks it)
+
+
+----------------------------------------------------------------
+  25. PAGES / ROUTES
+----------------------------------------------------------------
+
+  GET  /                    — Homepage
+  GET  /movie/<id>          — Movie detail page
+  GET  /search              — Search page
+  GET  /person/<id>         — Celebrity / person page
+  GET  /watchlist           — Watchlist management page
+  GET  /api/...             — All API endpoints (see section 11)
+
+
+================================================================
+  END OF FEATURES LIST
+================================================================

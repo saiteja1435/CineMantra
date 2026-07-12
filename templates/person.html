@@ -8,72 +8,216 @@
 {% block content %}
 <div id="personPage" data-person-id="{{ person_id }}">
 
-    <!-- BACKDROP -->
-    <div class="pp-backdrop-wrap">
+    <!-- ── BACKDROP ─────────────────────────────────────────── -->
+    <div class="pp-backdrop-wrap" id="ppBackdropWrap">
         <div class="pp-backdrop-img" id="ppBackdropImg"></div>
         <div class="pp-backdrop-overlay"></div>
     </div>
 
     <div class="pp-container">
 
-        <!-- LOADING -->
-        <div class="pp-loading" id="ppLoading">
-            <div class="pp-loading-spinner"></div>
+        <!-- SKELETON -->
+        <div class="pp-skeleton" id="ppSkeleton">
+            <div class="pp-sk-header">
+                <div class="pp-sk-avatar skeleton"></div>
+                <div class="pp-sk-info">
+                    <div class="skeleton pp-sk-line pp-sk-name"></div>
+                    <div class="skeleton pp-sk-line pp-sk-sub"></div>
+                    <div class="pp-sk-badges">
+                        <div class="skeleton pp-sk-badge"></div>
+                        <div class="skeleton pp-sk-badge"></div>
+                        <div class="skeleton pp-sk-badge"></div>
+                    </div>
+                    <div class="skeleton pp-sk-line pp-sk-bio1"></div>
+                    <div class="skeleton pp-sk-line pp-sk-bio2"></div>
+                    <div class="skeleton pp-sk-line pp-sk-bio3"></div>
+                </div>
+            </div>
         </div>
 
         <!-- ERROR -->
         <div class="pp-error" id="ppError" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <p id="ppErrorMsg">Failed to load person details.</p>
+            <button onclick="location.reload()" class="pp-retry-btn">Try Again</button>
         </div>
 
-        <!-- CONTENT -->
+        <!-- MAIN CONTENT -->
         <div class="pp-content" id="ppContent" style="display:none">
 
-            <!-- HEADER -->
-            <div class="pp-header">
+            <!-- ── HERO SECTION ──────────────────────────────── -->
+            <div class="pp-hero">
+
+                <!-- Profile image -->
                 <div class="pp-profile-wrap">
-                    <img class="pp-profile-img" id="ppImage"
-                         src="/static/images/placeholder.svg" alt="">
+                    <div class="pp-profile-ring">
+                        <img class="pp-profile-img" id="ppImage"
+                             src="/static/images/placeholder.svg" alt="">
+                    </div>
+                    <div class="pp-popularity-badge" id="ppPopBadge" style="display:none">
+                        <svg viewBox="0 0 24 24" fill="#FFD54F" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span id="ppPopScore"></span>
+                    </div>
                 </div>
 
-                <div class="pp-header-info">
+                <!-- Info -->
+                <div class="pp-hero-info">
+                    <div class="pp-known-dept" id="ppKnownDept"></div>
                     <h1 class="pp-name" id="ppName"></h1>
-                    <p class="pp-known-for" id="ppKnownFor"></p>
+                    <div class="pp-also-known" id="ppAlsoKnown"></div>
 
-                    <div class="pp-meta-row" id="ppMeta"></div>
+                    <!-- Meta pills -->
+                    <div class="pp-meta-pills" id="ppMetaPills"></div>
 
-                    <div class="pp-bio-wrap">
-                        <h2 class="pp-bio-label">Biography</h2>
-                        <p class="pp-bio" id="ppBio"></p>
+                    <!-- Action buttons -->
+                    <div class="pp-action-btns">
+                        <a class="pp-btn pp-btn-primary" id="ppImdbBtn" href="#" target="_blank" rel="noopener" style="display:none">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm2 4v10h2V7H6zm4 0v10h2V7h-2zm3 0v10h1.5V7H13zm2.5 0v10H17V7h-1.5z"/></svg>
+                            IMDb
+                        </a>
+                        <a class="pp-btn pp-btn-secondary" id="ppTmdbBtn"
+                           href="#" target="_blank" rel="noopener">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            TMDB
+                        </a>
+                        <button class="pp-btn pp-btn-icon" id="ppFavBtn" title="Add to Favorites">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        </button>
+                        <button class="pp-btn pp-btn-icon" id="ppShareBtn" title="Share">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- FILMOGRAPHY -->
-            <section class="pp-section" id="ppFilmography" style="display:none">
-                <div class="pp-film-header">
-                    <h2 class="pp-section-title">Filmography</h2>
+            <!-- ── BIOGRAPHY ─────────────────────────────────── -->
+            <section class="pp-section" id="ppBioSection">
+                <h2 class="pp-section-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Biography
+                </h2>
+                <div class="pp-bio-wrap">
+                    <p class="pp-bio" id="ppBio"></p>
+                    <button class="pp-bio-toggle" id="ppBioToggle" style="display:none">
+                        Read More
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ── KNOWN FOR ─────────────────────────────────── -->
+            <section class="pp-section" id="ppKnownForSection" style="display:none">
+                <div class="pp-row-header">
+                    <div>
+                        <h2 class="pp-section-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            Known For
+                        </h2>
+                        <p class="pp-section-sub">Most popular appearances</p>
+                    </div>
+                </div>
+                <div class="pp-slider-wrap">
+                    <button class="pp-slider-btn pp-slider-prev" data-target="knownForRow" aria-label="Previous">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <div class="pp-cards-row" id="knownForRow"></div>
+                    <button class="pp-slider-btn pp-slider-next" data-target="knownForRow" aria-label="Next">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ── FILMOGRAPHY ───────────────────────────────── -->
+            <section class="pp-section" id="ppFilmSection" style="display:none">
+                <div class="pp-row-header">
+                    <div>
+                        <h2 class="pp-section-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                            Filmography
+                        </h2>
+                        <p class="pp-section-sub" id="ppFilmCount"></p>
+                    </div>
                     <div class="pp-film-controls">
                         <div class="pp-tabs" id="ppTabs">
-                            <button class="pp-tab active" data-tab="all">All Movies</button>
+                            <button class="pp-tab active" data-tab="all">All</button>
                             <button class="pp-tab" data-tab="telugu">Telugu</button>
                             <button class="pp-tab" data-tab="tv">Web Series</button>
                             <button class="pp-tab" data-tab="upcoming">Upcoming</button>
                         </div>
-                        <select class="pp-sort" id="ppSort">
-                            <option value="latest">Latest</option>
+                        <select class="pp-sort-select" id="ppSort">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
                             <option value="rating">Highest Rated</option>
                             <option value="popular">Most Popular</option>
                         </select>
                     </div>
                 </div>
-                <div class="pp-film-grid" id="ppFilmGrid"></div>
+
+                <!-- Timeline -->
+                <div class="pp-timeline" id="ppTimeline"></div>
+            </section>
+
+            <!-- ── GALLERY ───────────────────────────────────── -->
+            <section class="pp-section" id="ppGallerySection" style="display:none">
+                <div class="pp-row-header">
+                    <div>
+                        <h2 class="pp-section-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                            Gallery
+                        </h2>
+                        <p class="pp-section-sub" id="ppGalleryCount"></p>
+                    </div>
+                </div>
+                <div class="pp-gallery-grid" id="ppGalleryGrid"></div>
+            </section>
+
+            <!-- ── SIMILAR PEOPLE ────────────────────────────── -->
+            <section class="pp-section" id="ppSimilarSection" style="display:none">
+                <div class="pp-row-header">
+                    <div>
+                        <h2 class="pp-section-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            Similar People
+                        </h2>
+                        <p class="pp-section-sub">Frequently appear together</p>
+                    </div>
+                </div>
+                <div class="pp-slider-wrap">
+                    <button class="pp-slider-btn pp-slider-prev" data-target="similarRow" aria-label="Previous">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <div class="pp-cards-row" id="similarRow"></div>
+                    <button class="pp-slider-btn pp-slider-next" data-target="similarRow" aria-label="Next">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </div>
             </section>
 
         </div><!-- /#ppContent -->
-
     </div><!-- /.pp-container -->
 </div>
+
+<!-- ── LIGHTBOX ─────────────────────────────────────────────── -->
+<div class="pp-lightbox" id="ppLightbox" style="display:none" role="dialog" aria-modal="true">
+    <div class="pp-lightbox-backdrop" id="ppLbBackdrop"></div>
+    <button class="pp-lb-close" id="ppLbClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <button class="pp-lb-nav pp-lb-prev" id="ppLbPrev" aria-label="Previous">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="pp-lb-img-wrap">
+        <img class="pp-lb-img" id="ppLbImg" src="" alt="">
+        <div class="pp-lb-counter" id="ppLbCounter"></div>
+    </div>
+    <button class="pp-lb-nav pp-lb-next" id="ppLbNext" aria-label="Next">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+</div>
+
+<!-- Share toast -->
+<div class="pp-toast" id="ppToast">Link copied!</div>
+
 {% endblock %}
 
 {% block scripts %}

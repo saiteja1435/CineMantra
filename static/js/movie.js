@@ -570,22 +570,157 @@
         });
     }
 
-    /* ── PROVIDERS ───────────────────────────────────────── */
-    function renderProviders(results) {
-        const el     = document.getElementById('mdProviders');
-        const region = results['IN'] || results['US'] || null;
-        const flat   = region?.flatrate || region?.rent || region?.buy || [];
-        if (!flat.length) { el.innerHTML = '<p class="md-empty">Streaming information unavailable.</p>'; return; }
-        el.innerHTML = '';
-        flat.forEach(p => {
-            const logo = p.logo_path ? `${IMG_W185}${p.logo_path}` : null;
-            const chip = document.createElement('div');
-            chip.className = 'provider-chip';
-            chip.innerHTML = logo
-                ? `<img class="provider-logo" src="${logo}" alt="${p.provider_name}" loading="lazy" onerror="this.style.display='none'">${p.provider_name}`
-                : p.provider_name;
-            el.appendChild(chip);
-        });
+    /* ── OTT Providers (premium) ────────────────────────── */
+    const YT_LOGO_SVG = `<svg viewBox="0 0 24 24" fill="#fff" width="28" height="28"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
+
+    function _buildOttCard(provider, actionClass, actionLabel, isYt) {
+        const card = document.createElement('a');
+        card.className = 'ott-card' + (isYt ? ' ott-youtube' : '');
+        card.href      = provider.url || '#';
+        card.target    = '_blank';
+        card.rel       = 'noopener';
+        card.title     = provider.name;
+
+        const logoWrap = document.createElement('div');
+        logoWrap.className = 'ott-logo-wrap';
+
+        if (isYt) {
+            logoWrap.innerHTML = YT_LOGO_SVG;
+        } else if (provider.logo) {
+            const img = document.createElement('img');
+            img.className    = 'lazy';
+            img.dataset.src  = provider.logo;
+            img.alt          = provider.name;
+            img.loading      = 'lazy';
+            img.onerror      = () => {
+                img.style.display = 'none';
+                logoWrap.innerHTML = `<div class="ott-logo-placeholder">${provider.name.slice(0,2).toUpperCase()}</div>`;
+            };
+            logoWrap.appendChild(img);
+            lazyImg(img);
+        } else {
+            logoWrap.innerHTML = `<div class="ott-logo-placeholder">${provider.name.slice(0,2).toUpperCase()}</div>`;
+        }
+
+        const nameEl = document.createElement('div');
+        nameEl.className   = 'ott-card-name';
+        nameEl.textContent = provider.name;
+
+        const actionEl = document.createElement('div');
+        actionEl.className   = `ott-card-action ${actionClass}`;
+        actionEl.textContent = actionLabel;
+
+        card.appendChild(logoWrap);
+        card.appendChild(nameEl);
+        card.appendChild(actionEl);
+        return card;
+    }
+
+    function _buildOttGroup(label, providers, actionClass, actionLabel) {
+        if (!providers.length) return null;
+        const group = document.createElement('div');
+        group.className = 'ott-group';
+        const lbl = document.createElement('div');
+        lbl.className   = 'ott-group-label';
+        lbl.textContent = label;
+        const row = document.createElement('div');
+        row.className = 'ott-cards-row';
+        providers.forEach(p => row.appendChild(_buildOttCard(p, actionClass, actionLabel, false)));
+        group.appendChild(lbl);
+        group.appendChild(row);
+        return group;
+    }
+
+    async function loadOTT() {
+        const section    = document.getElementById('sectionOTT');
+        const body       = document.getElementById('ottBody');
+        const skeleton   = document.getElementById('ottSkeleton');
+        const countryBadge = document.getElementById('ottCountryBadge');
+        const jwLink     = document.getElementById('ottJwLink');
+        if (!section || !body) return;
+
+        console.log('[OTT] Loading OTT Providers...');
+
+        try {
+            const data = await Utils.fetchJSON(`/api/movie/${MOVIE_ID}/streaming`);
+            console.log('[OTT] OTT Providers Received', data);
+
+            // Remove skeleton
+            if (skeleton) skeleton.remove();
+            body.innerHTML = '';
+
+            const stream  = data.stream  || [];
+            const rent    = data.rent    || [];
+            const buy     = data.buy     || [];
+            const ytProv  = data.youtube_provider || null;
+            const country = data.country || null;
+            const link    = data.link    || null;
+            const total   = stream.length + rent.length + buy.length;
+
+            // Country badge
+            if (country && countryBadge) {
+                const label = country === 'IN' ? '🇮🇳 Available in India'
+                            : country === 'US' ? '🇺🇸 Available in United States'
+                            : `Available in ${country}`;
+                countryBadge.textContent = label;
+                countryBadge.style.display = '';
+                console.log(`[OTT] Country: ${country}`);
+                if (country !== 'IN') console.log('[OTT] Fallback: US');
+            }
+
+            // JustWatch link
+            if (link && jwLink) {
+                jwLink.href = link;
+                jwLink.style.display = '';
+            }
+
+            if (total === 0 && !ytProv) {
+                body.innerHTML = `
+                    <div class="ott-empty">
+                        <svg viewBox="0 0 48 48" fill="none" width="48" height="48">
+                            <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="2"/>
+                            <path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <p>No streaming information available.</p>
+                    </div>`;
+                console.log('[OTT] OTT Section Rendered — no providers found');
+                return;
+            }
+
+            // Stream group
+            const streamGroup = _buildOttGroup('Stream', stream, 'ott-action-stream', 'Watch Now');
+            if (streamGroup) body.appendChild(streamGroup);
+
+            // Rent group
+            const rentGroup = _buildOttGroup('Rent', rent, 'ott-action-rent', 'Rent');
+            if (rentGroup) body.appendChild(rentGroup);
+
+            // Buy group
+            const buyGroup = _buildOttGroup('Buy', buy, 'ott-action-buy', 'Buy');
+            if (buyGroup) body.appendChild(buyGroup);
+
+            // YouTube provider card
+            if (ytProv) {
+                const ytGroup = document.createElement('div');
+                ytGroup.className = 'ott-group';
+                const ytLbl = document.createElement('div');
+                ytLbl.className   = 'ott-group-label';
+                ytLbl.textContent = 'YouTube';
+                const ytRow = document.createElement('div');
+                ytRow.className = 'ott-cards-row';
+                ytRow.appendChild(_buildOttCard(ytProv, 'ott-action-yt', 'Watch', true));
+                ytGroup.appendChild(ytLbl);
+                ytGroup.appendChild(ytRow);
+                body.appendChild(ytGroup);
+            }
+
+            console.log('[OTT] OTT Section Rendered');
+
+        } catch (e) {
+            console.warn('[OTT] load failed:', e);
+            if (skeleton) skeleton.remove();
+            body.innerHTML = '<p class="md-empty">No streaming information available.</p>';
+        }
     }
 
     /* ── GALLERY ─────────────────────────────────────────── */
@@ -738,55 +873,7 @@
     }
 
     /* ── Streaming availability + official trailer ─────── */
-    async function loadStreaming() {
-        const section  = document.getElementById('sectionStreaming');
-        const ottBlock = document.getElementById('streamOttBlock');
-        const ottRow   = document.getElementById('streamOttRow');
-        const ytBlock  = document.getElementById('streamYtBlock');
-        const ytBtn    = document.getElementById('streamYtBtn');
-        const ytTitle  = document.getElementById('streamYtTitle');
-        if (!section) return;
-
-        try {
-            console.log('Fetching watch providers for movie', MOVIE_ID);
-            const data = await Utils.fetchJSON(`/api/movie/${MOVIE_ID}/streaming`);
-            if (!data.ok) return;
-
-            let visible = false;
-
-            const otts = data.otts || [];
-            if (otts.length) {
-                console.log('OTT providers received:', otts.length);
-                ottRow.innerHTML = '';
-                otts.forEach(p => {
-                    const card = document.createElement('div');
-                    card.className = 'stream-ott-card';
-                    card.title = p.name;
-                    card.innerHTML = p.logo
-                        ? `<img src="${p.logo}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'"><span>${p.name}</span>`
-                        : `<span>${p.name}</span>`;
-                    card.addEventListener('click', () => window.open(p.url, '_blank', 'noopener'));
-                    ottRow.appendChild(card);
-                });
-                ottBlock.style.display = '';
-                visible = true;
-            }
-
-            const yt = data.youtube;
-            if (yt && yt.url) {
-                console.log('Searching official YouTube trailer for movie', MOVIE_ID);
-                console.log('Trailer URL found:', yt.url);
-                ytBtn.href = yt.url;
-                ytTitle.textContent = yt.title || 'Watch Official Trailer on YouTube';
-                ytBlock.style.display = '';
-                visible = true;
-            }
-
-            if (visible) section.style.display = '';
-        } catch (e) {
-            console.warn('[Streaming] load failed:', e);
-        }
-    }
+    
 
     /* ── Latest Reviews & News ───────────────────────────── */
     const ARROW_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
@@ -859,7 +946,6 @@
         Promise.all([
             Promise.resolve().then(() => renderCrew(credits.crew   || [])),
             Promise.resolve().then(() => renderCast(credits.cast   || [])),
-            Promise.resolve().then(() => renderProviders(providers.results || {})),
             Promise.resolve().then(() => renderGallery(images.backdrops   || [])),
             Promise.resolve().then(() => populateCards(document.getElementById('mdSimilar'), similar)),
             loadRecommendations(),
@@ -868,7 +954,7 @@
             loadLatestNews(movieName, fallbackImg),
             loadAIReview(movieName, details.release_date || null, details.status || null),
             loadAIRecommendations(),
-            loadStreaming(),
+            loadOTT(),
         ]);
     }
 

@@ -15,6 +15,8 @@ from services.tmdb import (
     getTeluguTrending, getTeluguPopular, getTeluguTopRated,
     getTeluguUpcoming, getTeluguNowPlaying, getTeluguWebSeries,
     getTeluguOTT, getTeluguClassics, getTeluguByGenre, searchTeluguMovies,
+    getTeluguWebSeriesTopRated, getTeluguWebSeriesNew, getTeluguWebSeriesByGenre,
+    getTVCore, getTVDetails, getTVVideos, getTVWatchProviders,
 )
 from services.youtube import (
     searchOfficialTrailer, searchOfficialTeaser, searchBehindTheScenes,
@@ -171,6 +173,38 @@ def telugu_now_playing():
 def telugu_web_series():
     return _run_list(getTeluguWebSeries)
 
+@api_bp.route("/telugu/web-series/top-rated")
+def telugu_ws_top_rated():
+    return _run_list(getTeluguWebSeriesTopRated)
+
+@api_bp.route("/telugu/web-series/new")
+def telugu_ws_new():
+    return _run_list(getTeluguWebSeriesNew)
+
+@api_bp.route("/telugu/web-series/drama")
+def telugu_ws_drama():
+    return _run_list(lambda: getTeluguWebSeriesByGenre(18))
+
+@api_bp.route("/telugu/web-series/comedy")
+def telugu_ws_comedy():
+    return _run_list(lambda: getTeluguWebSeriesByGenre(35))
+
+@api_bp.route("/telugu/web-series/crime")
+def telugu_ws_crime():
+    return _run_list(lambda: getTeluguWebSeriesByGenre(80))
+
+@api_bp.route("/telugu/web-series/thriller")
+def telugu_ws_thriller():
+    return _run_list(lambda: getTeluguWebSeriesByGenre(53))
+
+@api_bp.route("/telugu/web-series/romance")
+def telugu_ws_romance():
+    return _run_list(lambda: getTeluguWebSeriesByGenre(10749))
+
+@api_bp.route("/telugu/web-series/action")
+def telugu_ws_action():
+    return _run_list(lambda: getTeluguWebSeriesByGenre(28))
+
 @api_bp.route("/telugu/ott")
 def telugu_ott():
     return _run_list(getTeluguOTT)
@@ -248,34 +282,155 @@ def movie_detail(movie_id):
 
 # ── Streaming availability + official YouTube trailer ────────
 
+
+# ── TV / Web Series Detail ───────────────────────────────────────────
+
+@api_bp.route("/tv/<int:tv_id>")
+def tv_detail(tv_id):
+    try:
+        core = getTVCore(tv_id)
+        details = core.get("details")
+        if not details:
+            return _fail("TV show not found", 404)
+        return jsonify({
+            "ok":          True,
+            "details":     details,
+            "credits":     core.get("credits")     or {},
+            "images":      core.get("images")      or {},
+            "videos":      core.get("videos")      or {},
+            "providers":   core.get("providers")   or {},
+            "similar":     core.get("similar")     or [],
+            "recommended": core.get("recommended") or [],
+        })
+    except Exception as e:
+        return _fail(str(e))
+
+
+@api_bp.route("/tv/<int:tv_id>/streaming")
+def tv_streaming(tv_id):
+    """OTT providers for a TV show — IN→US fallback."""
+    print(f"[OTT] Loading OTT Providers for TV {tv_id}", flush=True)
+    stream, rent, buy = [], [], []
+    country = None
+    jw_link = "https://www.justwatch.com/in/search?q=series"
+    try:
+        providers_data = getTVWatchProviders(tv_id)
+        results = (providers_data or {}).get("results", {})
+        region_data = None
+        if results.get("IN"):
+            region_data, country = results["IN"], "IN"
+            print("[OTT] Country: IN", flush=True)
+        elif results.get("US"):
+            region_data, country = results["US"], "US"
+            print("[OTT] Fallback: US", flush=True)
+        else:
+            for code, rdata in results.items():
+                if isinstance(rdata, dict) and (rdata.get("flatrate") or rdata.get("rent") or rdata.get("buy")):
+                    region_data, country = rdata, code
+                    print(f"[OTT] Fallback: {code}", flush=True)
+                    break
+        if region_data:
+            jw_link = region_data.get("link") or jw_link
+            for p in (region_data.get("flatrate") or []):
+                stream.append(_build_ott_provider(p, jw_link))
+            for p in (region_data.get("rent") or []):
+                rent.append(_build_ott_provider(p, jw_link))
+            for p in (region_data.get("buy") or []):
+                buy.append(_build_ott_provider(p, jw_link))
+        print(f"[OTT] OTT Providers Received — stream:{len(stream)} rent:{len(rent)} buy:{len(buy)}", flush=True)
+    except Exception as e:
+        print(f"[OTT] TV provider fetch failed: {e}", flush=True)
+
+    # YouTube trailer
+    youtube_provider = None
+    try:
+        videos_data = getTVVideos(tv_id)
+        yt_all   = [v for v in (videos_data or {}).get("results", []) if v.get("site") == "YouTube"]
+        trailers = [v for v in yt_all if v.get("type") == "Trailer"]
+        teasers  = [v for v in yt_all if v.get("type") == "Teaser"]
+        best = (next((v for v in trailers if "official" in v.get("name","").lower()), None)
+                or (trailers[0] if trailers else None)
+                or (teasers[0]  if teasers  else None))
+        if best:
+            youtube_provider = {
+                "id": "youtube", "name": "YouTube", "logo": None,
+                "url": f"https://www.youtube.com/watch?v={best['key']}",
+                "key": best["key"], "title": best.get("name") or "Watch on YouTube",
+            }
+    except Exception:
+        pass
+
+    return jsonify({"ok": True, "stream": stream, "rent": rent, "buy": buy,
+                    "country": country, "link": jw_link, "youtube_provider": youtube_provider})
+
+
+# ── OTT Streaming Availability ────────────────────────────────
+
+def _build_ott_provider(p, link):
+    logo = p.get("logo_path")
+    return {
+        "id":   p.get("provider_id"),
+        "name": p.get("provider_name", ""),
+        "logo": f"/api/tmdb-img/w92{logo}" if logo else None,
+        "url":  link,
+    }
+
+
 @api_bp.route("/movie/<int:movie_id>/streaming")
 def movie_streaming(movie_id):
-    """Returns OTT providers (IN region) + best official YouTube trailer."""
-    import os, requests as _r
+    """Returns OTT providers split by stream/rent/buy with IN->US fallback + JustWatch link.
+    Also detects if movie is free on YouTube and returns it as a provider."""
+    print(f"[OTT] Loading OTT Providers for movie {movie_id}", flush=True)
 
-    # ── OTT providers via TMDB ────────────────────────────────
-    print(f"[Streaming] Fetching watch providers for movie {movie_id}", flush=True)
-    otts = []
+    stream  = []
+    rent    = []
+    buy     = []
+    country = None
+    jw_link = f"https://www.justwatch.com/in/search?q=movie"
+
     try:
         providers_data = getWatchProviders(movie_id)
-        region = (providers_data or {}).get("results", {}).get("IN") or \
-                 (providers_data or {}).get("results", {}).get("US") or {}
-        flat = region.get("flatrate") or region.get("rent") or region.get("buy") or []
-        print(f"[Streaming] OTT providers received: {len(flat)}", flush=True)
-        for p in flat:
-            logo = p.get("logo_path")
-            otts.append({
-                "name": p.get("provider_name", ""),
-                "logo": f"/api/tmdb-img/w92{logo}" if logo else None,
-                "url":  f"https://www.themoviedb.org/movie/{movie_id}/watch",
-            })
-    except Exception as e:
-        print(f"[Streaming] OTT fetch failed: {e}", flush=True)
+        results = (providers_data or {}).get("results", {})
 
-    # ── Official YouTube trailer ──────────────────────────────
-    youtube = None
+        region_data = None
+        if results.get("IN"):
+            region_data = results["IN"]
+            country = "IN"
+            print("[OTT] Country: IN", flush=True)
+        elif results.get("US"):
+            region_data = results["US"]
+            country = "US"
+            print("[OTT] Fallback: US", flush=True)
+        else:
+            for code, rdata in results.items():
+                if isinstance(rdata, dict) and (
+                    rdata.get("flatrate") or rdata.get("rent") or rdata.get("buy")
+                ):
+                    region_data = rdata
+                    country = code
+                    print(f"[OTT] Fallback: {code}", flush=True)
+                    break
+
+        if region_data:
+            jw_link = region_data.get("link") or jw_link
+            for p in (region_data.get("flatrate") or []):
+                stream.append(_build_ott_provider(p, jw_link))
+            for p in (region_data.get("rent") or []):
+                rent.append(_build_ott_provider(p, jw_link))
+            for p in (region_data.get("buy") or []):
+                buy.append(_build_ott_provider(p, jw_link))
+
+        total = len(stream) + len(rent) + len(buy)
+        print(f"[OTT] OTT Providers Received - stream:{len(stream)} rent:{len(rent)} buy:{len(buy)}", flush=True)
+        print(f"[OTT] OTT Section Rendered - total:{total} country:{country}", flush=True)
+
+    except Exception as e:
+        print(f"[OTT] Provider fetch failed: {e}", flush=True)
+
+    # ── YouTube free availability check ──────────────────────
+    # Check TMDB videos for a free YouTube full movie link
+    youtube_provider = None
     try:
-        # First try TMDB videos
         tmdb_videos = getMovieVideos(movie_id)
         yt_all = [v for v in (tmdb_videos or {}).get("results", []) if v.get("site") == "YouTube"]
         trailers = [v for v in yt_all if v.get("type") == "Trailer"]
@@ -286,40 +441,28 @@ def movie_streaming(movie_id):
             or (teasers[0]  if teasers  else None)
         )
         if best:
-            youtube = {
-                "title": best.get("name") or "Official Trailer",
-                "url":   f"https://www.youtube.com/watch?v={best['key']}",
-                "key":   best["key"],
+            yt_url = f"https://www.youtube.com/watch?v={best['key']}"
+            youtube_provider = {
+                "id":   "youtube",
+                "name": "YouTube",
+                "logo": None,
+                "url":  yt_url,
+                "key":  best["key"],
+                "title": best.get("name") or "Watch on YouTube",
             }
-            print(f"[Streaming] Trailer URL found (TMDB): {youtube['url']}", flush=True)
+            print(f"[OTT] YouTube provider found: {yt_url}", flush=True)
     except Exception as e:
-        print(f"[Streaming] TMDB video fetch failed: {e}", flush=True)
+        print(f"[OTT] YouTube check failed: {e}", flush=True)
 
-    # Fallback: YouTube Data API search
-    if not youtube:
-        try:
-            movie_title = ""
-            try:
-                det = getMovieDetails(movie_id)
-                movie_title = (det or {}).get("title") or ""
-            except Exception:
-                pass
-            if movie_title:
-                print(f"[Streaming] Searching official YouTube trailer for: {movie_title!r}", flush=True)
-                from services.youtube import searchOfficialTrailer
-                results = searchOfficialTrailer(movie_title)
-                if results:
-                    v = results[0]
-                    youtube = {
-                        "title": v.get("title") or "Official Trailer",
-                        "url":   f"https://www.youtube.com/watch?v={v['videoId']}",
-                        "key":   v["videoId"],
-                    }
-                    print(f"[Streaming] Trailer URL found (YouTube API): {youtube['url']}", flush=True)
-        except Exception as e:
-            print(f"[Streaming] YouTube trailer search failed: {e}", flush=True)
-
-    return jsonify({"ok": True, "otts": otts, "youtube": youtube})
+    return jsonify({
+        "ok":               True,
+        "stream":           stream,
+        "rent":             rent,
+        "buy":              buy,
+        "country":          country,
+        "link":             jw_link,
+        "youtube_provider": youtube_provider,
+    })
 
 
 @api_bp.route("/movie/<int:movie_id>/videos")
@@ -576,6 +719,30 @@ def person_search():
     if not q:
         return _fail("Missing q", 400)
     return jsonify({"ok": True, "results": searchPerson(q)})
+
+
+@api_bp.route("/person/<int:person_id>/images")
+def person_images(person_id):
+    try:
+        from services.person import getPersonImages
+        data = getPersonImages(person_id)
+        profiles = data.get("profiles", [])
+        enriched = []
+        for img in profiles:
+            fp = img.get("file_path")
+            if fp:
+                enriched.append({
+                    "file_path":   fp,
+                    "url":         f"/api/tmdb-img/w500{fp}",
+                    "url_orig":    f"/api/tmdb-img/original{fp}",
+                    "width":       img.get("width"),
+                    "height":      img.get("height"),
+                    "vote_average":img.get("vote_average", 0),
+                })
+        enriched.sort(key=lambda x: x["vote_average"], reverse=True)
+        return jsonify({"ok": True, "images": enriched})
+    except Exception as e:
+        return _fail(str(e))
 
 
 @api_bp.route("/person/<int:person_id>/news")

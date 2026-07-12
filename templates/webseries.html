@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Telugu Web Series — CineMantra{% endblock %}
+
+{% block content %}
+
+<!-- HERO BANNER -->
+<section class="hero-banner" id="wsHeroBanner">
+    <div class="hero-slide active" id="wsHeroPlaceholder">
+        <div class="hero-bg-placeholder"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-left">
+                <span class="trending-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+                    #1 Trending Web Series
+                </span>
+                <h1 class="hero-title">Loading...</h1>
+                <div class="hero-meta">
+                    <span class="hero-year">—</span>
+                    <span class="hero-dot">•</span>
+                    <span class="hero-rating">—</span>
+                </div>
+                <p class="hero-overview">Fetching trending web series...</p>
+                <div class="hero-genres"></div>
+                <div class="hero-actions">
+                    <button class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Watch Now
+                    </button>
+                    <button class="btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        More Info
+                    </button>
+                </div>
+            </div>
+            <div class="hero-right">
+                <div class="hero-poster-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+                    <span>Series Poster</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="hero-slider-controls">
+        <button class="slider-btn prev" id="wsPrev" aria-label="Previous">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="slider-dots" id="wsSliderDots">
+            <button class="dot active" data-index="0"></button>
+        </div>
+        <button class="slider-btn next" id="wsNext" aria-label="Next">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+    </div>
+</section>
+
+<!-- QUICK FILTER TABS -->
+<div class="ws-filter-tabs" id="wsFilterTabs">
+    <button class="ws-tab active" data-row="row-ws-trending">🔥 Trending</button>
+    <button class="ws-tab" data-row="row-ws-toprated">⭐ Top Rated</button>
+    <button class="ws-tab" data-row="row-ws-new">🆕 New</button>
+    <button class="ws-tab" data-row="row-ws-drama">🎭 Drama</button>
+    <button class="ws-tab" data-row="row-ws-crime">🕵️ Crime</button>
+    <button class="ws-tab" data-row="row-ws-thriller">🔎 Thriller</button>
+    <button class="ws-tab" data-row="row-ws-comedy">😂 Comedy</button>
+    <button class="ws-tab" data-row="row-ws-romance">❤️ Romance</button>
+    <button class="ws-tab" data-row="row-ws-action">⚔ Action</button>
+    <button class="ws-tab" data-row="row-ws-ott">🌐 OTT</button>
+</div>
+
+<!-- CONTENT ROWS -->
+<div class="content-rows">
+
+    {% set sections = [
+        ("ws-trending",  "🔥 Trending Telugu Web Series",  "Most watched Telugu series right now"),
+        ("ws-toprated",  "⭐ Top Rated Web Series",         "Highest rated Telugu series"),
+        ("ws-new",       "🆕 New Web Series",               "Latest Telugu series releases"),
+        ("ws-drama",     "🎭 Drama Web Series",             "Emotional Telugu drama series"),
+        ("ws-crime",     "🕵️ Crime Web Series",             "Gripping Telugu crime series"),
+        ("ws-thriller",  "🔎 Thriller Web Series",          "Edge-of-seat Telugu thrillers"),
+        ("ws-comedy",    "😂 Comedy Web Series",            "Laugh-out-loud Telugu series"),
+        ("ws-romance",   "❤️ Romance Web Series",           "Best Telugu love stories"),
+        ("ws-action",    "⚔ Action Web Series",            "High-octane Telugu action series"),
+        ("ws-ott",       "🌐 Top Telugu OTT",               "Best Telugu streaming picks")
+    ] %}
+
+    {% for id, title, subtitle in sections %}
+    <section class="content-row" id="row-{{ id }}">
+        <div class="row-header">
+            <div class="row-titles">
+                <h2 class="row-title">{{ title }}</h2>
+                <p class="row-subtitle">{{ subtitle }}</p>
+            </div>
+        </div>
+        <div class="cards-scroll-wrapper">
+            <button class="scroll-btn scroll-left" aria-label="Scroll left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="cards-row" data-row="{{ id }}">
+                {% for i in range(8) %}
+                <div class="movie-card is-skeleton">
+                    <div class="card-poster">
+                        <div class="card-poster-skel skeleton"></div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-title-skel skeleton"></div>
+                        <div class="card-genre-skel skeleton"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="scroll-btn scroll-right" aria-label="Scroll right">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+        </div>
+    </section>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/webseries.js') }}"></script>
+{% endblock %}

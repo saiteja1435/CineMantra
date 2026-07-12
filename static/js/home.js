@@ -444,6 +444,20 @@
     }
 
     /* ═══════════════════════════════════════════════════════════
+       ANCHOR SCROLL — handle /#row-* links
+    ═══════════════════════════════════════════════════════════ */
+    function handleAnchorScroll() {
+        const hash = window.location.hash;
+        if (!hash) return;
+        const target = document.querySelector(hash);
+        if (!target) return;
+        setTimeout(() => {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 800); // wait for rows to render
+    }
+    window.addEventListener('load', handleAnchorScroll);
+
+    /* ═══════════════════════════════════════════════════════════
        BOOT
     ═══════════════════════════════════════════════════════════ */
     async function boot() {
@@ -463,6 +477,14 @@
         setTimeout(() => {
             loadRow('row-te-toprated',     '/api/telugu/top-rated');
             loadRow('row-te-webseries',    '/api/telugu/web-series');
+            loadRow('row-te-ws-toprated',  '/api/telugu/web-series/top-rated');
+            loadRow('row-te-ws-new',       '/api/telugu/web-series/new');
+            loadRow('row-te-ws-drama',     '/api/telugu/web-series/drama');
+            loadRow('row-te-ws-crime',     '/api/telugu/web-series/crime');
+            loadRow('row-te-ws-thriller',  '/api/telugu/web-series/thriller');
+            loadRow('row-te-ws-comedy',    '/api/telugu/web-series/comedy');
+            loadRow('row-te-ws-romance',   '/api/telugu/web-series/romance');
+            loadRow('row-te-ws-action',    '/api/telugu/web-series/action');
             loadRow('row-te-ott',          '/api/telugu/ott');
             loadRow('row-te-classics',     '/api/telugu/classics');
             loadRow('row-te-action',       '/api/telugu/action');

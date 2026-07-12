@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Movie — CineMantra{% endblock %}
+{% block title %}Web Series — CineMantra{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/movie.css') }}">
 {% endblock %}
 
 {% block content %}
-<div id="moviePage" data-movie-id="{{ movie_id }}">
+<div id="wsDetailPage" data-tv-id="{{ tv_id }}">
 
     <!-- BACKDROP HERO -->
     <div class="md-backdrop-wrap" id="mdBackdrop">
@@ -73,84 +73,19 @@
                 <p class="md-empty">Trailer not available.</p>
             </div>
             <div class="md-trailer-embed" id="trailerEmbedWrap" style="display:none">
-                <iframe
-                    id="trailerIframe"
-                    src=""
+                <iframe id="trailerIframe" src=""
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowfullscreen
-                    frameborder="0"
-                ></iframe>
+                    allowfullscreen frameborder="0"></iframe>
             </div>
             <div class="md-trailer-meta" id="trailerMeta" style="display:none">
                 <span class="md-trailer-title" id="trailerEmbedTitle"></span>
             </div>
         </section>
 
-        <!-- VIDEO GALLERY — tab nav + single shared carousel -->
-        <section class="md-section" id="sectionVideoGallery" style="display:none">
-            <h2 class="md-section-title">Videos</h2>
-            <div class="vg-tabs" id="vgTabs"></div>
-            <div class="md-scroll-wrap vg-carousel-wrap">
-                <button class="scroll-btn scroll-left" aria-label="Scroll left">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                <div class="yt-row" id="vgCarousel"></div>
-                <button class="scroll-btn scroll-right" aria-label="Scroll right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-            </div>
-        </section>
-
-        <!-- AI REVIEW SUMMARY -->
-        <section class="md-section" id="sectionAIReview" style="display:none">
-            <h2 class="md-section-title">⭐ AI Review Summary</h2>
-            <div class="air-card" id="airCard">
-                <!-- skeleton state -->
-                <div class="air-skel-header">
-                    <div class="air-skel-score skeleton"></div>
-                    <div class="air-skel-sentiment skeleton"></div>
-                </div>
-                <div class="air-skel-line w90 skeleton"></div>
-                <div class="air-skel-line w80 skeleton"></div>
-                <div class="air-skel-line w70 skeleton"></div>
-            </div>
-        </section>
-
-        <!-- LATEST REVIEWS & NEWS -->
-        <section class="md-section" id="sectionLatestNews" style="display:none">
-            <h2 class="md-section-title">Latest Reviews &amp; News</h2>
-            <div class="md-scroll-wrap">
-                <button class="scroll-btn scroll-left" aria-label="Scroll left">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                <div class="lnews-row" id="mdLatestNews">
-                    {% for i in range(5) %}
-                    <div class="lnews-card is-skeleton">
-                        <div class="lnews-img-wrap skeleton"></div>
-                        <div class="lnews-body">
-                            <div class="lnews-skel-line w40 skeleton"></div>
-                            <div class="lnews-skel-line w90 skeleton"></div>
-                            <div class="lnews-skel-line w70 skeleton"></div>
-                            <div class="lnews-skel-line w90 skeleton"></div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                <button class="scroll-btn scroll-right" aria-label="Scroll right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-            </div>
-        </section>
-
-        <!-- CREW -->
-        <section class="md-section" id="sectionCrew">
-            <h2 class="md-section-title">Behind the Camera</h2>
-            <div class="md-crew-grid" id="mdCrew">
-                <div class="md-crew-skel skeleton"></div>
-                <div class="md-crew-skel skeleton"></div>
-                <div class="md-crew-skel skeleton"></div>
-                <div class="md-crew-skel skeleton"></div>
-            </div>
+        <!-- SEASONS INFO -->
+        <section class="md-section" id="sectionSeasons" style="display:none">
+            <h2 class="md-section-title">Seasons</h2>
+            <div class="ws-seasons-grid" id="wsSeasonsGrid"></div>
         </section>
 
         <!-- CAST -->
@@ -175,7 +110,7 @@
             </div>
         </section>
 
-        <!-- WHERE TO WATCH — Premium OTT Section -->
+        <!-- WHERE TO WATCH -->
         <section class="md-section" id="sectionOTT">
             <div class="ott-header">
                 <h2 class="md-section-title" style="border:none;margin:0;padding:0">Where to Watch</h2>
@@ -186,7 +121,6 @@
                 </a>
             </div>
             <div id="ottBody">
-                <!-- skeleton -->
                 <div class="ott-group" id="ottSkeleton">
                     <div class="ott-group-label skeleton" style="height:12px;width:80px;border-radius:4px;margin-bottom:0.75rem"></div>
                     <div class="ott-cards-row">
@@ -201,7 +135,7 @@
             </div>
         </section>
 
-        <!-- IMAGE GALLERY -->
+        <!-- GALLERY -->
         <section class="md-section" id="sectionGallery">
             <h2 class="md-section-title">Gallery</h2>
             <div class="md-scroll-wrap">
@@ -219,51 +153,9 @@
             </div>
         </section>
 
-        <!-- RECOMMENDED -->
-        <section class="md-section" id="sectionRecommended">
-            <h2 class="md-section-title" id="mdRecommendedTitle">More Like This</h2>
-            <div class="rec-tabs" id="recTabs"></div>
-            <div class="md-scroll-wrap rec-carousel-wrap">
-                <button class="scroll-btn scroll-left" aria-label="Scroll left">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                <div class="cards-row" id="mdRecommended"></div>
-                <button class="scroll-btn scroll-right" aria-label="Scroll right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-            </div>
-        </section>
-
-        <!-- AI RECOMMENDED FOR YOU -->
-        <section class="md-section" id="sectionAIRecommend" style="display:none">
-            <h2 class="md-section-title">🤖 AI Recommended For You</h2>
-            <p class="airec-reason" id="airecReason"></p>
-            <div class="md-scroll-wrap airec-scroll-wrap">
-                <button class="scroll-btn scroll-left" aria-label="Scroll left">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                <div class="airec-row" id="airecRow">
-                    {% for i in range(6) %}
-                    <div class="airec-card airec-card-skel">
-                        <div class="airec-poster-skel skeleton"></div>
-                        <div class="airec-body">
-                            <div class="airec-skel-line w70 skeleton"></div>
-                            <div class="airec-skel-line w45 skeleton"></div>
-                            <div class="airec-skel-line w90 skeleton"></div>
-                            <div class="airec-skel-line w80 skeleton"></div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                <button class="scroll-btn scroll-right" aria-label="Scroll right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-            </div>
-        </section>
-
-        <!-- SIMILAR -->
+        <!-- SIMILAR / RECOMMENDED -->
         <section class="md-section" id="sectionSimilar">
-            <h2 class="md-section-title">Similar Movies</h2>
+            <h2 class="md-section-title">More Like This</h2>
             <div class="md-scroll-wrap">
                 <button class="scroll-btn scroll-left" aria-label="Scroll left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -275,11 +167,11 @@
             </div>
         </section>
 
-    </div><!-- /.md-container -->
+    </div>
 </div>
 
 <!-- TRAILER MODAL -->
-<div class="yt-modal" id="ytModal" role="dialog" aria-modal="true" aria-label="Video player">
+<div class="yt-modal" id="ytModal" role="dialog" aria-modal="true">
     <div class="yt-modal-inner">
         <button class="yt-modal-close" id="ytModalClose" aria-label="Close">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -291,7 +183,7 @@
     </div>
 </div>
 
-<!-- IMAGE LIGHTBOX -->
+<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
     <button class="lightbox-close" id="lightboxClose" aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -302,5 +194,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/movie.js') }}"></script>
+<script src="{{ url_for('static', filename='js/webseries_detail.js') }}"></script>
 {% endblock %}
