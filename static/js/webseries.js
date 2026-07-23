@@ -1,5 +1,9 @@
 (() => {
     const STAR_SVG = `<svg viewBox="0 0 24 24" fill="#FFD54F" stroke="#FFD54F" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    const LANG_LABELS = { te:'Telugu', hi:'Hindi', en:'English', ta:'Tamil', ml:'Malayalam', kn:'Kannada', bn:'Bengali', mr:'Marathi' };
+
+    function getLang() { return localStorage.getItem('cm-lang') || 'te'; }
+    function langApi(path) { return path + '?lang=' + getLang(); }
 
     /* ── Card builder ─────────────────────────────────────── */
     function buildCard(item) {
@@ -29,7 +33,6 @@
             </div>`;
 
         Utils.lazyLoad(card.querySelector('img'));
-        // Click → webseries detail page
         card.addEventListener('click', () => { window.location.href = '/webseries/' + id; });
         card.querySelectorAll('.card-overlay button').forEach(b => b.addEventListener('click', e => e.stopPropagation()));
         return card;
@@ -55,7 +58,7 @@
         try {
             const data = await Utils.fetchJSON(apiPath);
             rowEl.innerHTML = '';
-            if (data.ok && data.results && data.results.length) {
+            if (data.ok && data.results?.length) {
                 data.results.forEach(m => rowEl.appendChild(buildCard(m)));
             } else {
                 rowEl.innerHTML = '<p style="color:var(--text-muted);padding:1rem;font-size:0.85rem;">Nothing to show right now.</p>';
@@ -63,6 +66,24 @@
         } catch {
             rowEl.innerHTML = '<p style="color:var(--text-muted);padding:1rem;font-size:0.85rem;">Unable to load.</p>';
         }
+    }
+
+    /* ── Update row titles with lang ──────────────────────── */
+    function updateTitles() {
+        const L = LANG_LABELS[getLang()] || getLang();
+        const map = {
+            'row-ws-trending': [`🔥 Trending ${L} Web Series`, `Most watched ${L} series right now`],
+            'row-ws-toprated': [`⭐ Top Rated ${L} Web Series`, `Highest rated ${L} series`],
+            'row-ws-new':      [`🆕 New ${L} Web Series`, `Latest ${L} series releases`],
+        };
+        Object.entries(map).forEach(([id, [title, sub]]) => {
+            const sec = document.getElementById(id);
+            if (!sec) return;
+            const t = sec.querySelector('.row-title');
+            const s = sec.querySelector('.row-subtitle');
+            if (t) t.textContent = title;
+            if (s) s.textContent = sub;
+        });
     }
 
     /* ── Scroll buttons ───────────────────────────────────── */
@@ -101,8 +122,9 @@
         const year        = Utils.year(item.release_date || item.first_air_date);
         const rating      = Utils.rating(item.vote_average);
         const genres      = Utils.genreNames(item.genre_ids || []);
-        const overview    = (item.overview || '').slice(0, 200) + (item.overview?.length > 200 ? '…' : '');
+        const overview    = (item.overview || '').slice(0, 200);
         const id          = item.id;
+        const L           = LANG_LABELS[getLang()] || getLang();
 
         const slide = document.createElement('div');
         slide.className = 'hero-slide';
@@ -116,7 +138,7 @@
                 <div class="hero-left">
                     <span class="trending-badge">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
-                        #${index + 1} Trending Web Series
+                        #${index + 1} Trending ${L} Web Series
                     </span>
                     <h1 class="hero-title">${title}</h1>
                     <div class="hero-meta">
@@ -124,12 +146,10 @@
                         <span class="hero-dot">•</span>
                         <span class="hero-rating">${STAR_SVG} ${rating}</span>
                         <span class="hero-dot">•</span>
-                        <span class="hero-cert">Telugu</span>
+                        <span class="hero-cert">${L}</span>
                     </div>
                     <p class="hero-overview">${overview}</p>
-                    <div class="hero-genres">
-                        ${genres.map(g => `<span class="genre-tag">${g}</span>`).join('')}
-                    </div>
+                    <div class="hero-genres">${genres.map(g => `<span class="genre-tag">${g}</span>`).join('')}</div>
                     <div class="hero-actions">
                         <button class="btn-primary" onclick="window.location.href='/webseries/${id}'">
                             <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -175,44 +195,42 @@
     function resetHeroAuto() { clearInterval(heroTimer); startHeroAuto(); }
 
     async function initHero() {
+        clearInterval(heroTimer);
+        heroBanner.querySelectorAll('.hero-slide').forEach(s => s.remove());
+        document.getElementById('wsHeroPlaceholder')?.remove();
+        heroItems = []; heroCurrent = 0;
         try {
-            const data = await Utils.fetchJSON('/api/telugu/web-series');
+            const data = await Utils.fetchJSON(langApi('/api/movies/web-series'));
             if (!data.ok || !data.results?.length) return;
-
             heroItems = data.results.slice(0, 5);
             const controls = heroBanner.querySelector('.hero-slider-controls');
-            document.getElementById('wsHeroPlaceholder')?.remove();
-
-            heroItems.forEach((item, i) => {
-                heroBanner.insertBefore(renderHeroSlide(item, i), controls);
-            });
-
+            heroItems.forEach((item, i) => heroBanner.insertBefore(renderHeroSlide(item, i), controls));
             heroBanner.querySelector('.hero-slide')?.classList.add('active');
             buildDots(heroItems.length);
-
             prevBtn?.addEventListener('click', () => { goToHero(heroCurrent - 1); resetHeroAuto(); });
             nextBtn?.addEventListener('click', () => { goToHero(heroCurrent + 1); resetHeroAuto(); });
             startHeroAuto();
-        } catch (e) {
-            console.error('[WebSeries] Hero load failed:', e);
-        }
+        } catch (e) { console.error('[WebSeries] Hero load failed:', e); }
     }
 
-    /* ── Boot ─────────────────────────────────────────────── */
-    initHero();
+    /* ── Boot & reload ────────────────────────────────────── */
+    function bootAll() {
+        updateTitles();
+        initHero();
+        loadRow('ws-trending', langApi('/api/movies/web-series'));
+        loadRow('ws-toprated', langApi('/api/movies/web-series'));
+        loadRow('ws-new',      langApi('/api/movies/web-series'));
+        setTimeout(() => {
+            loadRow('ws-drama',    '/api/telugu/web-series/drama');
+            loadRow('ws-crime',    '/api/telugu/web-series/crime');
+            loadRow('ws-thriller', '/api/telugu/web-series/thriller');
+            loadRow('ws-comedy',   '/api/telugu/web-series/comedy');
+            loadRow('ws-romance',  '/api/telugu/web-series/romance');
+            loadRow('ws-action',   '/api/telugu/web-series/action');
+            loadRow('ws-ott',      '/api/telugu/ott');
+        }, 400);
+    }
 
-    loadRow('ws-trending',  '/api/telugu/web-series');
-    loadRow('ws-toprated',  '/api/telugu/web-series/top-rated');
-    loadRow('ws-new',       '/api/telugu/web-series/new');
-
-    setTimeout(() => {
-        loadRow('ws-drama',    '/api/telugu/web-series/drama');
-        loadRow('ws-crime',    '/api/telugu/web-series/crime');
-        loadRow('ws-thriller', '/api/telugu/web-series/thriller');
-        loadRow('ws-comedy',   '/api/telugu/web-series/comedy');
-        loadRow('ws-romance',  '/api/telugu/web-series/romance');
-        loadRow('ws-action',   '/api/telugu/web-series/action');
-        loadRow('ws-ott',      '/api/telugu/ott');
-    }, 400);
-
+    bootAll();
+    document.addEventListener('cm:lang-change', bootAll);
 })();

@@ -1,21 +1,21 @@
 (() => {
-    const page    = document.getElementById('browsePage');
-    const grid    = document.getElementById('browseGrid');
-    const empty   = document.getElementById('browseEmpty');
+    const page  = document.getElementById('browsePage');
+    const grid  = document.getElementById('browseGrid');
+    const empty = document.getElementById('browseEmpty');
     if (!page || !grid) return;
 
-    const _lang = () => localStorage.getItem('cm-lang') || 'te';
     const baseApi = page.dataset.api;
-    // Append lang param to API URL
-    const apiUrl = baseApi + (baseApi.includes('?') ? '&' : '?') + 'lang=' + _lang();
-    const STAR    = `<svg viewBox="0 0 24 24" fill="#FFD54F" stroke="#FFD54F" stroke-width="1" width="11" height="11"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    const STAR = `<svg viewBox="0 0 24 24" fill="#FFD54F" stroke="#FFD54F" stroke-width="1" width="11" height="11"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+
+    function getLang() { return localStorage.getItem('cm-lang') || 'te'; }
+    function apiUrl()  { return baseApi + (baseApi.includes('?') ? '&' : '?') + 'lang=' + getLang(); }
 
     function buildCard(movie) {
-        const poster  = movie.poster_url || movie.backdrop_url || Utils.PLACEHOLDER;
-        const title   = movie.title || movie.name || 'Untitled';
-        const year    = Utils.year(movie.release_date);
-        const rating  = Utils.rating(movie.vote_average);
-        const genres  = Utils.genreNames(movie.genre_ids || []);
+        const poster = movie.poster_url || movie.backdrop_url || Utils.PLACEHOLDER;
+        const title  = movie.title || movie.name || 'Untitled';
+        const year   = Utils.year(movie.release_date);
+        const rating = Utils.rating(movie.vote_average);
+        const genres = Utils.genreNames(movie.genre_ids || []);
 
         const card = document.createElement('div');
         card.className = 'movie-card';
@@ -52,17 +52,27 @@
         return card;
     }
 
+    function showSkeletons() {
+        grid.innerHTML = '';
+        empty.style.display = 'none';
+        for (let i = 0; i < 20; i++) {
+            const c = document.createElement('div');
+            c.className = 'movie-card is-skeleton';
+            c.innerHTML = `<div class="card-poster"><div class="card-poster-skel skeleton"></div></div>
+                           <div class="card-info"><div class="card-title-skel skeleton"></div><div class="card-genre-skel skeleton"></div></div>`;
+            grid.appendChild(c);
+        }
+    }
+
     async function load() {
+        showSkeletons();
         try {
-            const data = await Utils.fetchJSON(apiUrl);
+            const data = await Utils.fetchJSON(apiUrl());
             grid.innerHTML = '';
             const movies = data.ok ? (data.results || []) : [];
-            if (!movies.length) {
-                empty.style.display = 'flex';
-                return;
-            }
+            if (!movies.length) { empty.style.display = 'flex'; return; }
             movies.forEach(m => grid.appendChild(buildCard(m)));
-        } catch (e) {
+        } catch {
             grid.innerHTML = '';
             empty.style.display = 'flex';
             window.Toast?.show('Failed to load movies', 'error');
@@ -70,4 +80,7 @@
     }
 
     load();
+
+    // Reload when language changes
+    document.addEventListener('cm:lang-change', load);
 })();

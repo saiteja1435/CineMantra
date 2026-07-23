@@ -331,7 +331,17 @@ window.cacheMovieForOffline = function(movie) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('CineMantra loaded');
 
-    /* ── Sidebar toggle ──────────────────────────────────── */
+    /* ── Language selector (global — works on every page) ── */
+    const langSel = document.getElementById('langSelect');
+    if (langSel) {
+        langSel.value = localStorage.getItem('cm-lang') || 'te';
+        langSel.addEventListener('change', () => {
+            const lang = langSel.value;
+            localStorage.setItem('cm-lang', lang);
+            document.dispatchEvent(new CustomEvent('cm:lang-change', { detail: { lang } }));
+        });
+    }
+
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar       = document.getElementById('sidebar');
     const mainContent   = document.getElementById('mainContent');

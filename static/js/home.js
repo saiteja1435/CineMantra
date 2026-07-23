@@ -66,6 +66,8 @@
         langSelectEl.addEventListener('change', () => {
             _lang = langSelectEl.value;
             localStorage.setItem('cm-lang', _lang);
+            // Notify all pages
+            document.dispatchEvent(new CustomEvent('cm:lang-change', { detail: { lang: _lang } }));
             reloadAllRows();
             Toast.show(`🌐 Switched to ${LANG_LABELS[_lang] || _lang} movies`, 'info');
         });
