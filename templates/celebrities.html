@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Celebrities — CineMantra{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/celebrities.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="celeb-page">
+
+    <!-- PAGE HERO -->
+    <div class="celeb-hero">
+        <div class="celeb-hero-inner">
+            <h1 class="celeb-page-title">
+                <span>🎭</span> Telugu Celebrities
+            </h1>
+            <p class="celeb-page-subtitle">Heroes, Heroines, Directors, Singers & more</p>
+        </div>
+    </div>
+
+    <!-- SECTIONS -->
+    <div class="celeb-sections">
+
+        <!-- HEROES -->
+        <section class="celeb-section" id="section-heroes">
+            <div class="celeb-section-header">
+                <h2 class="celeb-section-title">🦸 Heroes</h2>
+                <p class="celeb-section-sub">Most popular Telugu male actors</p>
+            </div>
+            <div class="celeb-grid" id="grid-heroes">
+                {% for i in range(12) %}
+                <div class="celeb-card celeb-skel">
+                    <div class="celeb-avatar skeleton"></div>
+                    <div class="celeb-skel-name skeleton"></div>
+                    <div class="celeb-skel-sub skeleton"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- HEROINES -->
+        <section class="celeb-section" id="section-heroines">
+            <div class="celeb-section-header">
+                <h2 class="celeb-section-title">💃 Heroines</h2>
+                <p class="celeb-section-sub">Most popular Telugu female actors</p>
+            </div>
+            <div class="celeb-grid" id="grid-heroines">
+                {% for i in range(12) %}
+                <div class="celeb-card celeb-skel">
+                    <div class="celeb-avatar skeleton"></div>
+                    <div class="celeb-skel-name skeleton"></div>
+                    <div class="celeb-skel-sub skeleton"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- DIRECTORS -->
+        <section class="celeb-section" id="section-directors">
+            <div class="celeb-section-header">
+                <h2 class="celeb-section-title">🎬 Directors</h2>
+                <p class="celeb-section-sub">Visionary Telugu filmmakers</p>
+            </div>
+            <div class="celeb-grid" id="grid-directors">
+                {% for i in range(12) %}
+                <div class="celeb-card celeb-skel">
+                    <div class="celeb-avatar skeleton"></div>
+                    <div class="celeb-skel-name skeleton"></div>
+                    <div class="celeb-skel-sub skeleton"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- SINGERS -->
+        <section class="celeb-section" id="section-singers">
+            <div class="celeb-section-header">
+                <h2 class="celeb-section-title">🎵 Singers</h2>
+                <p class="celeb-section-sub">Iconic voices of Telugu cinema</p>
+            </div>
+            <div class="celeb-grid" id="grid-singers">
+                {% for i in range(12) %}
+                <div class="celeb-card celeb-skel">
+                    <div class="celeb-avatar skeleton"></div>
+                    <div class="celeb-skel-name skeleton"></div>
+                    <div class="celeb-skel-sub skeleton"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/celebrities.js') }}"></script>
+{% endblock %}

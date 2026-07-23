@@ -112,8 +112,8 @@
         if (!btnFav) return;
         const fav = item && item.favorite;
         btnFav.classList.toggle('btn-active', !!fav);
-        const span = btnFav.querySelector('span.btn-label');
-        if (span) span.textContent = fav ? '\u2665 Favorited' : 'Favorites';
+        const svg = btnFav.querySelector('svg path');
+        if (svg) svg.setAttribute('fill', fav ? 'currentColor' : 'none');
     }
 
     function _wrapBtnText(btn) {
@@ -129,7 +129,6 @@
     async function initListButtons(movieId, details) {
         if (!movieId) return;
         const id = parseInt(movieId, 10);
-        _wrapBtnText(btnFav);
         _wrapBtnText(btnWatchlist);
 
         // Check current DB status
@@ -142,7 +141,7 @@
         // Add to recent
         fetch('/api/recent/add', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-User-ID': window.CM_UID || 'local' },
             body: JSON.stringify({
                 movie_id:     id,
                 title:        details.title || '',
@@ -165,18 +164,18 @@
         btnWatchlist?.addEventListener('click', async () => {
             const cur = await Utils.fetchJSON(`/api/watchlist/status/${id}`);
             if (cur.item) {
-                await fetch('/api/watchlist/remove', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ movie_id: id }) });
+                await fetch('/api/watchlist/remove', { method:'POST', headers:{'Content-Type':'application/json','X-User-ID':window.CM_UID||'local'}, body: JSON.stringify({ movie_id: id }) });
                 _syncWlBtn(null);
                 Toast.show('Removed from Watchlist', 'info');
             } else {
-                const r = await fetch('/api/watchlist/add', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(_payload()) }).then(x => x.json());
+                const r = await fetch('/api/watchlist/add', { method:'POST', headers:{'Content-Type':'application/json','X-User-ID':window.CM_UID||'local'}, body: JSON.stringify(_payload()) }).then(x => x.json());
                 _syncWlBtn(r.item);
                 Toast.show(`Added to Watchlist`, 'success');
             }
         });
 
         btnFav?.addEventListener('click', async () => {
-            const r = await fetch('/api/watchlist/favorite', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(_payload()) }).then(x => x.json());
+            const r = await fetch('/api/watchlist/favorite', { method:'POST', headers:{'Content-Type':'application/json','X-User-ID':window.CM_UID||'local'}, body: JSON.stringify(_payload()) }).then(x => x.json());
             _syncFavBtn(r.item);
             Toast.show(r.favorite ? '\u2665 Added to Favorites' : 'Removed from Favorites', r.favorite ? 'success' : 'info');
         });
@@ -823,7 +822,7 @@
         try {
             const data = await fetch('/api/ai/recommend', {
                 method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-User-ID': window.CM_UID || 'local' },
                 body:    JSON.stringify({ movie_id: parseInt(MOVIE_ID, 10) }),
             }).then(r => r.json());
 

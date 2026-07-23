@@ -99,10 +99,88 @@ const CM = {
     isFavorite(id)    { return Store.has(CM_KEYS.favorites, id); },
 };
 
+/* ── Genre history tracker ───────────────────────────────── */
+function trackGenres(genreIds) {
+    if (!genreIds?.length) return;
+    try {
+        const counts = JSON.parse(localStorage.getItem('cm-genre-history') || '{}');
+        genreIds.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+        localStorage.setItem('cm-genre-history', JSON.stringify(counts));
+    } catch {}
+}
+window.trackGenres = trackGenres;
+
 /* Expose globally */
 window.CM    = CM;
 window.Store = Store;
 window.Toast = Toast;
+
+/* ── Offline / Online status indicator ──────────────────── */
+(function initOfflineStatus() {
+    let bar;
+    function _bar() {
+        if (bar) return bar;
+        bar = document.createElement('div');
+        bar.id = 'offlineBar';
+        bar.style.cssText = [
+            'position:fixed','top:0','left:0','right:0',
+            'z-index:99999','padding:0.45rem 1rem',
+            'text-align:center','font-size:0.78rem','font-weight:700',
+            'transition:transform 0.3s ease',
+            'transform:translateY(-100%)',
+        ].join(';');
+        document.body.appendChild(bar);
+        return bar;
+    }
+    function show(online) {
+        const b = _bar();
+        if (online) {
+            b.style.background = '#10B981';
+            b.style.color = '#fff';
+            b.textContent = '✅ Back online!';
+            b.style.transform = 'translateY(0)';
+            setTimeout(() => { b.style.transform = 'translateY(-100%)'; }, 2500);
+        } else {
+            b.style.background = '#EF4444';
+            b.style.color = '#fff';
+            b.textContent = '📡 No internet — showing cached content';
+            b.style.transform = 'translateY(0)';
+        }
+    }
+    window.addEventListener('online',  () => show(true));
+    window.addEventListener('offline', () => show(false));
+    if (!navigator.onLine) show(false);
+})();
+
+/* ── Movie cache for offline use ─────────────────────────── */
+window.cacheMovieForOffline = function(movie) {
+    if (!movie || !movie.id) return;
+    try {
+        const cache = JSON.parse(localStorage.getItem('cm-movie-cache') || '{}');
+        cache[movie.id] = {
+            id:           movie.id,
+            title:        movie.title || movie.name || '',
+            poster_url:   movie.poster_url || '',
+            backdrop_url: movie.backdrop_url || '',
+            release_date: movie.release_date || '',
+            vote_average: movie.vote_average || 0,
+            overview:     (movie.overview || '').slice(0, 200),
+            genre_ids:    movie.genre_ids || [],
+        };
+        // Keep only last 50 movies
+        const keys = Object.keys(cache);
+        if (keys.length > 50) delete cache[keys[0]];
+        localStorage.setItem('cm-movie-cache', JSON.stringify(cache));
+    } catch {}
+    // Tell SW to cache the movie page + API
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+            type:   'CACHE_MOVIE',
+            url:    '/movie/' + movie.id,
+            apiUrl: '/api/movie/' + movie.id,
+        });
+    }
+};
 
 /* ── Header search bar — runs on every page ─────────────── */
 (function initHeaderSearch() {
@@ -192,6 +270,62 @@ window.Toast = Toast;
     document.addEventListener('click', e => {
         if (!e.target.closest('.search-wrap')) closeDropdown();
     });
+
+    /* ── Voice Search ─────────────────────────────────────── */
+    const micBtn = document.getElementById('micBtn');
+    if (micBtn && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SR();
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        // Telugu keywords → filter mapping
+        const VOICE_FILTERS = [
+            { pattern: /upcoming|రాబోయే|రాబోతున్న/i,  filter: 'upcoming' },
+            { pattern: /trending|ట్రెండింగ్/i,         filter: 'trending' },
+            { pattern: /top.?rated|అత్యుత్తమ/i,        filter: 'toprated' },
+            { pattern: /new.?release|కొత్త/i,           filter: 'new' },
+        ];
+
+        micBtn.addEventListener('click', () => {
+            const isListening = micBtn.classList.contains('listening');
+            if (isListening) { recognition.stop(); return; }
+
+            // Try Telugu first, fallback to en-IN
+            recognition.lang = 'te-IN';
+            recognition.start();
+            micBtn.classList.add('listening');
+            Toast.show('🎤 మాట్లాడండి...', 'info');
+        });
+
+        recognition.onresult = e => {
+            const transcript = e.results[0][0].transcript.trim();
+            micBtn.classList.remove('listening');
+
+            // Check if it's a filter command
+            for (const { pattern, filter } of VOICE_FILTERS) {
+                if (pattern.test(transcript)) {
+                    const btn = document.querySelector(`.qa-btn[data-filter="${filter}"]`);
+                    if (btn) { btn.click(); Toast.show(`🎤 "${transcript}"`, 'success'); }
+                    return;
+                }
+            }
+
+            // Otherwise treat as search query
+            searchInput.value = transcript;
+            searchInput.dispatchEvent(new Event('input'));
+            Toast.show(`🎤 "${transcript}"`, 'success');
+        };
+
+        recognition.onerror = e => {
+            micBtn.classList.remove('listening');
+            if (e.error !== 'aborted') Toast.show('Voice search failed. Try again.', 'error');
+        };
+
+        recognition.onend = () => micBtn.classList.remove('listening');
+    } else if (micBtn) {
+        micBtn.style.display = 'none'; // hide if not supported
+    }
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -215,11 +349,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ── Active nav item ─────────────────────────────────── */
-    const path = window.location.pathname;
+    const path  = window.location.pathname;
+    const search = window.location.search;
     document.querySelectorAll('.nav-item a').forEach(a => {
         const href = a.getAttribute('href');
         if (href === '#') return;
-        if (href === '/' ? path === '/' : path.startsWith(href)) {
+        // For links with query params (watchlist tabs), match full href
+        if (href.includes('?')) {
+            const [hPath, hQuery] = href.split('?');
+            if (path === hPath && search === '?' + hQuery) {
+                a.closest('.nav-item')?.classList.add('active');
+            }
+        } else if (href === '/' ? path === '/' : path.startsWith(href)) {
             a.closest('.nav-item')?.classList.add('active');
         }
     });

@@ -151,9 +151,15 @@
     }
 
     /* ── API calls ───────────────────────────────────────── */
+    function _uid() { return window.CM_UID || 'local'; }
+    function _apiFetch(url, opts = {}) {
+        const headers = { 'Content-Type': 'application/json', 'X-User-ID': _uid(), ...(opts.headers || {}) };
+        return fetch(url, { ...opts, headers }).then(r => r.json());
+    }
+
     async function load() {
         try {
-            const data = await fetch('/api/watchlist').then(r => r.json());
+            const data = await _apiFetch('/api/watchlist');
             _all = data.ok ? data.results : [];
             render();
             if (_all.length >= 3) {
@@ -167,10 +173,9 @@
     }
 
     async function toggleWatched(movieId) {
-        const res = await fetch('/api/watchlist/watched', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ movie_id: movieId }),
-        }).then(r => r.json());
+        const res = await _apiFetch('/api/watchlist/watched', {
+            method: 'POST', body: JSON.stringify({ movie_id: movieId }),
+        });
         if (res.ok && res.item) {
             const idx = _all.findIndex(m => m.movie_id === movieId);
             if (idx !== -1) _all[idx] = res.item;
@@ -179,10 +184,9 @@
     }
 
     async function toggleFavorite(movieId) {
-        const res = await fetch('/api/watchlist/favorite', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ movie_id: movieId }),
-        }).then(r => r.json());
+        const res = await _apiFetch('/api/watchlist/favorite', {
+            method: 'POST', body: JSON.stringify({ movie_id: movieId }),
+        });
         if (res.ok && res.item) {
             const idx = _all.findIndex(m => m.movie_id === movieId);
             if (idx !== -1) _all[idx] = res.item;
@@ -202,9 +206,8 @@
         const id   = _pendingRemoveId;
         const card = document.querySelector(`.wl-card[data-id="${id}"]`);
         if (card) card.classList.add('removing');
-        await fetch('/api/watchlist/remove', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ movie_id: id }),
+        await _apiFetch('/api/watchlist/remove', {
+            method: 'POST', body: JSON.stringify({ movie_id: id }),
         });
         setTimeout(() => { _all = _all.filter(m => m.movie_id !== id); render(); }, 300);
         closeModal('wlModal');
@@ -232,10 +235,9 @@
 
     document.getElementById('wlRateConfirm').addEventListener('click', async () => {
         if (!_pendingRateId || !_selectedRating) { closeModal('wlRateModal'); return; }
-        const res = await fetch('/api/watchlist/rate', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ movie_id: _pendingRateId, user_rating: _selectedRating }),
-        }).then(r => r.json());
+        const res = await _apiFetch('/api/watchlist/rate', {
+            method: 'POST', body: JSON.stringify({ movie_id: _pendingRateId, user_rating: _selectedRating }),
+        });
         if (res.ok && res.item) {
             const idx = _all.findIndex(m => m.movie_id === _pendingRateId);
             if (idx !== -1) _all[idx] = res.item;
@@ -256,10 +258,9 @@
     document.getElementById('wlNotesConfirm').addEventListener('click', async () => {
         if (!_pendingNotesId) { closeModal('wlNotesModal'); return; }
         const notes = document.getElementById('wlNotesInput').value.trim();
-        const res = await fetch('/api/watchlist/notes', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ movie_id: _pendingNotesId, notes }),
-        }).then(r => r.json());
+        const res = await _apiFetch('/api/watchlist/notes', {
+            method: 'POST', body: JSON.stringify({ movie_id: _pendingNotesId, notes }),
+        });
         if (res.ok && res.item) {
             const idx = _all.findIndex(m => m.movie_id === _pendingNotesId);
             if (idx !== -1) _all[idx] = res.item;
@@ -321,7 +322,7 @@
             </div>`;
 
         try {
-            const data = await fetch('/api/watchlist/summary').then(r => r.json());
+            const data = await _apiFetch('/api/watchlist/summary');
             if (!data.ok || !data.result) { section.style.display = 'none'; return; }
             renderTaste(data.result);
         } catch {
@@ -408,7 +409,7 @@
             </div>`).join('');
 
         try {
-            const data = await fetch('/api/watchlist/recommendations').then(r => r.json());
+            const data = await _apiFetch('/api/watchlist/recommendations');
             if (!data.ok || !data.result) { section.style.display = 'none'; return; }
             renderRecs(data.result);
         } catch {
@@ -467,5 +468,12 @@
     }
 
     /* ── Boot ────────────────────────────────────────────── */
+    const _urlTab = new URLSearchParams(location.search).get('tab');
+    if (_urlTab && ['all','favorites','watching','completed'].includes(_urlTab)) {
+        _filter = _urlTab;
+        document.querySelectorAll('.wl-filter').forEach(b => {
+            b.classList.toggle('active', b.dataset.filter === _urlTab);
+        });
+    }
     load();
 })();

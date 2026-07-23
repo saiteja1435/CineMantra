@@ -1,4 +1,37 @@
 /* ============================================================
+   BACK BUTTON BAR
+   ============================================================ */
+.md-back-bar {
+    padding: 1rem 2rem 0;
+    position: relative;
+    z-index: 5;
+}
+
+.md-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.md-back-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .md-back-bar { padding: 0.75rem 1.25rem 0; }
+}
+
+/* ============================================================
    MOVIE DETAIL PAGE
    ============================================================ */
 
@@ -1566,6 +1599,12 @@ img.md-poster {
     background: rgba(229,9,20,0.15);
     border-color: var(--primary);
     color: var(--primary);
+}
+.btn-icon.btn-active {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: rgba(229,9,20,0.15);
+    box-shadow: 0 0 12px var(--primary-glow);
 }
 
 /* ── md-scroll-wrap scroll buttons visibility ───────────── */

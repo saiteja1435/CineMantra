@@ -1,6 +1,7 @@
 import os
 import socket
 import traceback
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
@@ -11,6 +12,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY", "").strip()
+
+# ── In-memory response cache (TTL = 5 min) ────────────────────
+_CACHE: dict = {}
+_CACHE_TTL   = 300  # seconds
+
+def _cache_get(key: str):
+    entry = _CACHE.get(key)
+    if entry and (time.time() - entry["ts"]) < _CACHE_TTL:
+        return entry["data"]
+    return None
+
+def _cache_set(key: str, data):
+    _CACHE[key] = {"data": data, "ts": time.time()}
+    # Evict oldest entries if cache grows too large
+    if len(_CACHE) > 200:
+        oldest = sorted(_CACHE, key=lambda k: _CACHE[k]["ts"])[:50]
+        for k in oldest:
+            _CACHE.pop(k, None)
 
 _BASE     = "https://api.themoviedb.org/3"
 _IMG_W500 = "/api/tmdb-img/w500"
@@ -47,14 +66,19 @@ def _fetch(endpoint: str, params: dict = None) -> dict:
     if not TMDB_API_KEY:
         raise RuntimeError("TMDB_API_KEY is missing — add it to .env and restart")
 
+    p = dict(params or {})
+    p["api_key"] = TMDB_API_KEY
+    cache_key = endpoint + str(sorted(p.items()))
+
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
     try:
         ips = dns_resolve("api.themoviedb.org")
         print(f"[TMDB] DNS api.themoviedb.org -> {ips}", flush=True)
     except socket.gaierror as e:
         raise RuntimeError(f"DNS resolution failed: {e}")
-
-    p = dict(params or {})
-    p["api_key"] = TMDB_API_KEY
 
     url = f"{_BASE}{endpoint}"
     print(f"[TMDB] GET {url}", flush=True)
@@ -88,6 +112,7 @@ def _fetch(endpoint: str, params: dict = None) -> dict:
     data = resp.json()
     if "results" in data:
         print(f"[TMDB] Results: {len(data['results'])}", flush=True)
+    _cache_set(cache_key, data)
     return data
 
 
@@ -110,16 +135,18 @@ def _list(endpoint: str, params: dict = None) -> list:
     return [_enrich(m) for m in data.get("results", [])]
 
 
-# ── Telugu filter helper ─────────────────────────────────────
+# ── Language filter helper ───────────────────────────────────
 
 _TE = "te"
 
-def _te_filter(items: list) -> list:
-    return [m for m in items if m.get("original_language") == _TE]
+def _lang_filter(items: list, lang: str) -> list:
+    return [m for m in items if m.get("original_language") == lang]
 
-def _te_discover(extra: dict = None, pages: int = 2) -> list:
-    """TMDB Discover with with_original_language=te, merges multiple pages."""
-    base = {"with_original_language": _TE, "sort_by": "popularity.desc",
+def _te_filter(items: list) -> list:
+    return _lang_filter(items, _TE)
+
+def _discover(lang: str, extra: dict = None, pages: int = 2) -> list:
+    base = {"with_original_language": lang, "sort_by": "popularity.desc",
             "include_adult": "false"}
     if extra:
         base.update(extra)
@@ -130,12 +157,12 @@ def _te_discover(extra: dict = None, pages: int = 2) -> list:
             data = _fetch("/discover/movie", base)
             results.extend([_enrich(m) for m in data.get("results", [])])
         except Exception as e:
-            print(f"[TMDB] _te_discover page {page} failed: {e}", flush=True)
+            print(f"[TMDB] _discover({lang}) page {page} failed: {e}", flush=True)
             break
-    return _te_filter(results)
+    return _lang_filter(results, lang)
 
-def _te_discover_tv(extra: dict = None, pages: int = 2) -> list:
-    base = {"with_original_language": _TE, "sort_by": "popularity.desc",
+def _discover_tv(lang: str, extra: dict = None, pages: int = 2) -> list:
+    base = {"with_original_language": lang, "sort_by": "popularity.desc",
             "include_adult": "false"}
     if extra:
         base.update(extra)
@@ -146,9 +173,15 @@ def _te_discover_tv(extra: dict = None, pages: int = 2) -> list:
             data = _fetch("/discover/tv", base)
             results.extend([_enrich(m) for m in data.get("results", [])])
         except Exception as e:
-            print(f"[TMDB] _te_discover_tv page {page} failed: {e}", flush=True)
+            print(f"[TMDB] _discover_tv({lang}) page {page} failed: {e}", flush=True)
             break
-    return _te_filter(results)
+    return _lang_filter(results, lang)
+
+def _te_discover(extra: dict = None, pages: int = 2) -> list:
+    return _discover(_TE, extra, pages)
+
+def _te_discover_tv(extra: dict = None, pages: int = 2) -> list:
+    return _discover_tv(_TE, extra, pages)
 
 
 # ── Public API ────────────────────────────────────────────────
@@ -166,27 +199,65 @@ def searchMovies(query: str) -> list:
 
 # ── Telugu-only Public API ────────────────────────────────────
 
+def getTrendingNow(lang: str = "te") -> list:
+    """Trending = released in current month or last month only."""
+    from datetime import date, timedelta
+    today      = date.today()
+    # First day of last month
+    first_this = today.replace(day=1)
+    last_month_end = first_this - timedelta(days=1)
+    date_from  = last_month_end.replace(day=1).isoformat()
+    date_to    = today.isoformat()
+    return _discover(lang, {
+        "primary_release_date.gte": date_from,
+        "primary_release_date.lte": date_to,
+        "sort_by": "popularity.desc",
+    }, pages=3)
+
 def getTeluguTrending() -> list:
-    """Telugu trending: use /trending/movie/week then filter, fallback to discover."""
-    try:
-        raw = _list("/trending/movie/week")
-        te  = _te_filter(raw)
-        if te:
-            return te
-    except Exception:
-        pass
-    return _te_discover()
+    return getTrendingNow("te")
 
-def getTeluguPopular()    -> list: return _te_discover()
-def getTeluguTopRated()   -> list: return _te_discover({"sort_by": "vote_average.desc", "vote_count.gte": "100"})
-def getTeluguUpcoming()   -> list: return _te_discover({"sort_by": "primary_release_date.desc"})
-def getTeluguNowPlaying() -> list: return _te_discover({"with_release_type": "2|3"})
+def getLangPopular(lang: str)  -> list: return _discover(lang)
+def getLangTopRated(lang: str) -> list: return _discover(lang, {"sort_by": "vote_average.desc", "vote_count.gte": "100"})
+def getLangNowPlaying(lang: str) -> list:
+    """Movies released in last 10 days to today — currently in theatres."""
+    from datetime import date, timedelta
+    today     = date.today()
+    date_from = (today - timedelta(days=10)).isoformat()
+    date_to   = today.isoformat()
+    return _discover(lang, {
+        "primary_release_date.gte": date_from,
+        "primary_release_date.lte": date_to,
+        "sort_by": "popularity.desc",
+    }, pages=2)
 
-def getTeluguWebSeries()  -> list: return _te_discover_tv()
-def getTeluguOTT()        -> list: return _te_discover_tv({"with_watch_monetization_types": "flatrate|free"})
-def getTeluguWebSeriesTopRated() -> list: return _te_discover_tv({"sort_by": "vote_average.desc", "vote_count.gte": "20"})
-def getTeluguWebSeriesNew()      -> list: return _te_discover_tv({"sort_by": "first_air_date.desc"})
-def getTeluguWebSeriesByGenre(genre_id: int) -> list: return _te_discover_tv({"with_genres": str(genre_id)})
+def getLangUpcoming(lang: str) -> list:
+    """Movies releasing from tomorrow to next 3 months."""
+    from datetime import date, timedelta
+    tomorrow = (date.today() + timedelta(days=1)).isoformat()
+    far_date = (date.today() + timedelta(days=90)).isoformat()
+    return _discover(lang, {
+        "primary_release_date.gte": tomorrow,
+        "primary_release_date.lte": far_date,
+        "sort_by": "primary_release_date.asc",
+    }, pages=5)
+def getLangWebSeries(lang: str)  -> list: return _discover_tv(lang)
+def getLangClassics(lang: str)   -> list: return _discover(lang, {"primary_release_date.lte": "2000-12-31", "sort_by": "vote_average.desc", "vote_count.gte": "50"})
+def getLangByGenre(lang: str, genre_id: int) -> list: return _discover(lang, {"with_genres": str(genre_id)})
+
+def getTeluguPopular()  -> list: return getLangPopular("te")
+def getTeluguTopRated() -> list: return getLangTopRated("te")
+
+def getTeluguUpcoming() -> list:
+    return getLangUpcoming("te")
+
+def getTeluguNowPlaying() -> list: return getLangNowPlaying("te")
+
+def getTeluguWebSeries()  -> list: return getLangWebSeries("te")
+def getTeluguOTT()        -> list: return _discover_tv(_TE, {"with_watch_monetization_types": "flatrate|free"})
+def getTeluguWebSeriesTopRated() -> list: return _discover_tv(_TE, {"sort_by": "vote_average.desc", "vote_count.gte": "20"})
+def getTeluguWebSeriesNew()      -> list: return _discover_tv(_TE, {"sort_by": "first_air_date.desc"})
+def getTeluguWebSeriesByGenre(genre_id: int) -> list: return _discover_tv(_TE, {"with_genres": str(genre_id)})
 
 
 # ── TV Show Detail ────────────────────────────────────────────
@@ -262,25 +333,61 @@ def getTVCore(tv_id: int) -> dict:
                 result[k] = None
     return result
 
-def getTeluguClassics()   -> list:
-    return _te_discover({"primary_release_date.lte": "2000-12-31",
-                         "sort_by": "vote_average.desc", "vote_count.gte": "50"})
+def getTeluguCalendar(year: int, month: int) -> list:
+    """Telugu movies releasing in a given month, sorted by release date."""
+    import calendar
+    last_day = calendar.monthrange(year, month)[1]
+    date_from = f"{year}-{month:02d}-01"
+    date_to   = f"{year}-{month:02d}-{last_day}"
+    results = _te_discover({
+        "primary_release_date.gte": date_from,
+        "primary_release_date.lte": date_to,
+        "sort_by": "primary_release_date.asc",
+    }, pages=3)
+    return results
+
+
+def getOTTTrending() -> list:
+    """Telugu movies trending on OTT (Netflix/Prime/Hotstar IN region)."""
+    _PROVIDER_NAMES = {8: "Netflix", 119: "Prime Video", 122: "Hotstar", 237: "SonyLIV", 220: "Zee5"}
+    results = []
+    seen = set()
+    for provider_id, name in _PROVIDER_NAMES.items():
+        try:
+            items = _te_discover({
+                "with_watch_providers": str(provider_id),
+                "watch_region": "IN",
+                "sort_by": "popularity.desc",
+            }, pages=1)
+            for m in items:
+                if m.get("id") not in seen:
+                    seen.add(m["id"])
+                    m["_ott_provider"] = name
+                    results.append(m)
+        except Exception as e:
+            print(f"[TMDB] getOTTTrending provider {provider_id} failed: {e}", flush=True)
+    return results[:30] if results else _te_discover(
+        {"with_watch_monetization_types": "flatrate", "watch_region": "IN"}, pages=1
+    )
+
+
+def getTeluguClassics() -> list:
+    return getLangClassics("te")
+
 
 def getTeluguByGenre(genre_id: int) -> list:
-    return _te_discover({"with_genres": str(genre_id)})
+    return getLangByGenre("te", genre_id)
 
-def searchTeluguMovies(query: str) -> list:
-    """Search Telugu movies only — no fallback to other languages."""
-    print(f"[TMDB] Search language filter: Telugu", flush=True)
+def searchLangMovies(query: str, lang: str) -> list:
     raw = _list("/search/movie", {"query": query, "language": "en-US",
                                    "include_adult": "false", "page": 1})
-    print(f"[TMDB] Before filter count: {len(raw)}", flush=True)
-    te = _te_filter(raw)
-    print(f"[TMDB] After Telugu filter count: {len(te)}", flush=True)
-    if te:
-        return te
-    # Fallback: discover Telugu popular (no non-Telugu results ever returned)
-    return _te_discover({"sort_by": "popularity.desc"})
+    filtered = _lang_filter(raw, lang)
+    if filtered:
+        return filtered
+    return _discover(lang, {"sort_by": "popularity.desc"})
+
+def searchTeluguMovies(query: str) -> list:
+    return searchLangMovies(query, "te")
 
 def getMovieRecommendations(movie_id: int) -> list:
     return _list(f"/movie/{movie_id}/recommendations")
@@ -426,4 +533,4 @@ def _results(endpoint: str, params: dict = None) -> list:
         return []
 
 def clear_cache():
-    pass
+    _CACHE.clear()

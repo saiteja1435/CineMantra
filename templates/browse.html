@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} — CineMantra{% endblock %}
+
+{% block content %}
+<div class="browse-page" id="browsePage"
+     data-api="{{ api_url }}"
+     data-title="{{ page_title }}"
+     data-subtitle="{{ page_subtitle }}">
+
+    <div class="browse-hero">
+        <div class="browse-hero-icon">{{ page_icon }}</div>
+        <div>
+            <h1 class="browse-title">{{ page_title }}</h1>
+            <p class="browse-subtitle">{{ page_subtitle }}</p>
+        </div>
+    </div>
+
+    <div class="browse-grid" id="browseGrid">
+        {% for i in range(20) %}
+        <div class="movie-card is-skeleton">
+            <div class="card-poster"><div class="card-poster-skel skeleton"></div></div>
+            <div class="card-info">
+                <div class="card-title-skel skeleton"></div>
+                <div class="card-genre-skel skeleton"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="browse-empty" id="browseEmpty" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>No movies found right now. Try again later.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/browse.js') }}"></script>
+{% endblock %}

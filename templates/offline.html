@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline — CineMantra</title>
+    <style>
+        :root {
+            --bg: #080B14; --bg-card: #0f1320; --bg-elevated: #161b2e;
+            --primary: #e50914; --text: #f0f0f0; --text-muted: #8892a4;
+            --border: rgba(255,255,255,0.08); --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+        .offline-hero {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 4rem 1.5rem 2rem;
+            text-align: center;
+        }
+        .offline-icon {
+            width: 80px; height: 80px; margin-bottom: 1.5rem;
+            background: rgba(229,9,20,0.1); border: 2px solid rgba(229,9,20,0.3);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(229,9,20,0.3); }
+            50%      { box-shadow: 0 0 0 16px rgba(229,9,20,0); }
+        }
+        .offline-icon svg { width: 36px; height: 36px; color: var(--primary); }
+        .logo { font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin-bottom: 0.5rem; }
+        .logo span { color: var(--primary); }
+        h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .sub { color: var(--text-muted); font-size: 0.9rem; max-width: 340px; line-height: 1.6; margin-bottom: 2rem; }
+
+        .retry-btn {
+            background: var(--primary); color: #fff; border: none;
+            padding: 0.75rem 2rem; border-radius: 99px; font-size: 0.9rem;
+            font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+            margin-bottom: 0.75rem;
+        }
+        .retry-btn:hover { opacity: 0.85; }
+        .home-btn {
+            background: none; border: 1px solid var(--border); color: var(--text-muted);
+            padding: 0.65rem 1.5rem; border-radius: 99px; font-size: 0.85rem;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .home-btn:hover { border-color: var(--primary); color: var(--text); }
+
+        .section-title {
+            font-size: 1rem; font-weight: 700; color: var(--text);
+            padding: 0 1.5rem; margin-bottom: 1rem;
+        }
+        .cards-row {
+            display: flex; gap: 0.75rem; overflow-x: auto;
+            padding: 0 1.5rem 1rem; scrollbar-width: none;
+        }
+        .cards-row::-webkit-scrollbar { display: none; }
+
+        .movie-card {
+            flex-shrink: 0; width: 130px; cursor: pointer;
+            border-radius: var(--radius); overflow: hidden;
+            background: var(--bg-card); border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+        .movie-card:hover { transform: scale(1.04); }
+        .movie-card img { width: 100%; height: 195px; object-fit: cover; display: block; }
+        .card-info { padding: 0.5rem; }
+        .card-title { font-size: 0.75rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-year  { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+
+        .empty-msg { color: var(--text-muted); font-size: 0.85rem; padding: 0 1.5rem; }
+
+        .status-bar {
+            position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+            background: #1a1a2e; border: 1px solid var(--border); border-radius: 99px;
+            padding: 0.5rem 1.2rem; font-size: 0.78rem; color: var(--text-muted);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+        .status-dot.online { background: #10b981; }
+    </style>
+</head>
+<body>
+
+<div class="offline-hero">
+    <div class="offline-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="1" y1="1" x2="23" y2="23"/>
+            <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+            <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+            <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
+            <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+            <line x1="12" y1="20" x2="12.01" y2="20"/>
+        </svg>
+    </div>
+    <div class="logo">Cine<span>Mantra</span></div>
+    <h1>You're Offline</h1>
+    <p class="sub">Internet connection లేదు. కానీ మీరు చూసిన movies offline లో చూడవచ్చు!</p>
+    <button class="retry-btn" onclick="location.reload()">🔄 Try Again</button>
+    <button class="home-btn" onclick="window.location.href='/'">🏠 Go Home</button>
+</div>
+
+<!-- Cached Watchlist -->
+<div id="watchlistSection" style="display:none; margin-bottom: 2rem;">
+    <p class="section-title">📋 Your Watchlist (Offline)</p>
+    <div class="cards-row" id="watchlistRow"></div>
+</div>
+
+<!-- Cached Favorites -->
+<div id="favSection" style="display:none; margin-bottom: 2rem;">
+    <p class="section-title">❤️ Your Favorites (Offline)</p>
+    <div class="cards-row" id="favRow"></div>
+</div>
+
+<!-- Recently Viewed -->
+<div id="recentSection" style="display:none; margin-bottom: 4rem;">
+    <p class="section-title">🕐 Recently Viewed (Offline)</p>
+    <div class="cards-row" id="recentRow"></div>
+</div>
+
+<div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">No internet connection</span>
+</div>
+
+<script>
+const PLACEHOLDER = '/static/images/placeholder.svg';
+
+function buildCard(m) {
+    const id     = m.movie_id || m.id;
+    const title  = m.title || 'Untitled';
+    const poster = m.poster || m.poster_url || PLACEHOLDER;
+    const year   = (m.release_date || '').slice(0, 4) || '—';
+    const card   = document.createElement('div');
+    card.className = 'movie-card';
+    card.innerHTML = `
+        <img src="${poster}" alt="${title}" onerror="this.src='${PLACEHOLDER}'">
+        <div class="card-info">
+            <div class="card-title">${title}</div>
+            <div class="card-year">${year}</div>
+        </div>`;
+    card.addEventListener('click', () => window.location.href = '/movie/' + id);
+    return card;
+}
+
+function loadSection(sectionId, rowId, items) {
+    if (!items || !items.length) return;
+    const section = document.getElementById(sectionId);
+    const row     = document.getElementById(rowId);
+    section.style.display = 'block';
+    items.slice(0, 12).forEach(m => row.appendChild(buildCard(m)));
+}
+
+// Load from localStorage (app.js stores these)
+function loadLocalData() {
+    try {
+        const wlIds  = JSON.parse(localStorage.getItem('cm-watchlist')  || '[]');
+        const favIds = JSON.parse(localStorage.getItem('cm-favorites')  || '[]');
+        const hist   = JSON.parse(localStorage.getItem('cm-history')    || '[]');
+        const cache  = JSON.parse(localStorage.getItem('cm-movie-cache') || '{}');
+
+        const wlMovies  = wlIds.map(id => cache[id]).filter(Boolean);
+        const favMovies = favIds.map(id => cache[id]).filter(Boolean);
+        const histMovies= hist.map(id => cache[id]).filter(Boolean);
+
+        loadSection('watchlistSection', 'watchlistRow', wlMovies);
+        loadSection('favSection',       'favRow',       favMovies);
+        loadSection('recentSection',    'recentRow',    histMovies);
+    } catch(e) { console.error(e); }
+}
+
+// Try fetching from SW cache via fetch (may work if SW cached it)
+async function tryFetchCached() {
+    try {
+        const res = await fetch('/api/watchlist');
+        const data = await res.json();
+        if (data.ok && data.results?.length) {
+            loadSection('watchlistSection', 'watchlistRow',
+                data.results.filter(m => m.favorite));
+            loadSection('recentSection', 'recentRow',
+                data.results.slice(0, 10));
+        }
+    } catch { loadLocalData(); }
+}
+
+// Online/offline status
+function updateStatus() {
+    const dot  = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    if (navigator.onLine) {
+        dot.classList.add('online');
+        text.textContent = 'Back online! Redirecting...';
+        setTimeout(() => window.location.href = '/', 1500);
+    } else {
+        dot.classList.remove('online');
+        text.textContent = 'No internet connection';
+    }
+}
+
+window.addEventListener('online',  updateStatus);
+window.addEventListener('offline', updateStatus);
+updateStatus();
+tryFetchCached();
+</script>
+</body>
+</html>

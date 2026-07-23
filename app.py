@@ -22,7 +22,7 @@ if _key:
 else:
     logger.error("TMDB API Key Loaded: NO — add TMDB_API_KEY to .env and restart")
 
-from flask import Flask
+from flask import Flask, send_from_directory
 
 app = Flask(__name__)
 app.config.from_object("config.Config")
@@ -38,6 +38,18 @@ with app.app_context():
 app.register_blueprint(home_bp)
 app.register_blueprint(api_bp, url_prefix="/api")
 app.register_blueprint(wl_bp)
+
+
+@app.route("/sw.js")
+def service_worker():
+    return send_from_directory(app.static_folder, "sw.js",
+                               mimetype="application/javascript")
+
+
+@app.route("/offline")
+def offline_page():
+    from flask import render_template
+    return render_template("offline.html")
 
 if __name__ == "__main__":
     app.run(debug=app.config["DEBUG"])

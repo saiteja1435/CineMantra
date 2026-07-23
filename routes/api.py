@@ -17,6 +17,10 @@ from services.tmdb import (
     getTeluguOTT, getTeluguClassics, getTeluguByGenre, searchTeluguMovies,
     getTeluguWebSeriesTopRated, getTeluguWebSeriesNew, getTeluguWebSeriesByGenre,
     getTVCore, getTVDetails, getTVVideos, getTVWatchProviders,
+    getTeluguCalendar, getOTTTrending,
+    getTrendingNow, getLangPopular, getLangTopRated, getLangUpcoming,
+    getLangNowPlaying, getLangWebSeries, getLangClassics, getLangByGenre,
+    searchLangMovies,
 )
 from services.youtube import (
     searchOfficialTrailer, searchOfficialTeaser, searchBehindTheScenes,
@@ -42,6 +46,10 @@ from services.person import (
 from database.db import sh_add, sh_get, sh_delete_one, sh_delete_all
 
 api_bp = Blueprint("api", __name__)
+
+
+def _uid():
+    return (request.headers.get("X-User-ID") or "local").strip()[:128] or "local"
 
 
 def _ok(results):
@@ -135,6 +143,64 @@ def smart_search():
         return jsonify({"ok": True, "results": data["results"], "intent": data["intent"]})
     except Exception as e:
         return _fail(str(e))
+
+
+# ── Language-aware routes ─────────────────────────────────────
+# ?lang=te|hi|ta|ml|kn|en  (default: te)
+
+VALID_LANGS = {"te", "hi", "ta", "ml", "kn", "en"}
+
+def _lang():
+    lang = request.args.get("lang", "te").strip().lower()
+    return lang if lang in VALID_LANGS else "te"
+
+@api_bp.route("/movies/trending")
+def movies_trending():
+    lang = _lang()
+    return _run_list(lambda: getTrendingNow(lang))
+
+@api_bp.route("/movies/popular")
+def movies_popular():
+    lang = _lang()
+    return _run_list(lambda: getLangPopular(lang))
+
+@api_bp.route("/movies/top-rated")
+def movies_top_rated():
+    lang = _lang()
+    return _run_list(lambda: getLangTopRated(lang))
+
+@api_bp.route("/movies/upcoming")
+def movies_upcoming():
+    lang = _lang()
+    return _run_list(lambda: getLangUpcoming(lang))
+
+@api_bp.route("/movies/now-playing")
+def movies_now_playing():
+    lang = _lang()
+    return _run_list(lambda: getLangNowPlaying(lang))
+
+@api_bp.route("/movies/web-series")
+def movies_web_series():
+    lang = _lang()
+    return _run_list(lambda: getLangWebSeries(lang))
+
+@api_bp.route("/movies/classics")
+def movies_classics():
+    lang = _lang()
+    return _run_list(lambda: getLangClassics(lang))
+
+@api_bp.route("/movies/genre/<int:genre_id>")
+def movies_by_genre(genre_id):
+    lang = _lang()
+    return _run_list(lambda: getLangByGenre(lang, genre_id))
+
+@api_bp.route("/movies/search")
+def movies_search():
+    q    = request.args.get("q", "").strip()
+    lang = _lang()
+    if not q:
+        return _fail("Missing q", 400)
+    return _run_list(lambda: searchLangMovies(q, lang))
 
 
 # ── Telugu-only routes ────────────────────────────────────────
@@ -427,30 +493,34 @@ def movie_streaming(movie_id):
     except Exception as e:
         print(f"[OTT] Provider fetch failed: {e}", flush=True)
 
-    # ── YouTube free availability check ──────────────────────
-    # Check TMDB videos for a free YouTube full movie link
+    # ── YouTube free full movie check ────────────────────────
+    # Only show YouTube if the full movie is freely available
     youtube_provider = None
     try:
-        tmdb_videos = getMovieVideos(movie_id)
-        yt_all = [v for v in (tmdb_videos or {}).get("results", []) if v.get("site") == "YouTube"]
-        trailers = [v for v in yt_all if v.get("type") == "Trailer"]
-        teasers  = [v for v in yt_all if v.get("type") == "Teaser"]
-        best = (
-            next((v for v in trailers if "official" in v.get("name", "").lower()), None)
-            or (trailers[0] if trailers else None)
-            or (teasers[0]  if teasers  else None)
-        )
-        if best:
-            yt_url = f"https://www.youtube.com/watch?v={best['key']}"
-            youtube_provider = {
-                "id":   "youtube",
-                "name": "YouTube",
-                "logo": None,
-                "url":  yt_url,
-                "key":  best["key"],
-                "title": best.get("name") or "Watch on YouTube",
-            }
-            print(f"[OTT] YouTube provider found: {yt_url}", flush=True)
+        details = getMovieDetails(movie_id)
+        movie_title = (details or {}).get("title") or ""
+        if movie_title:
+            from services.youtube import _search
+            results = _search(f"{movie_title} full movie", max_results=3)
+            _full_kw = {"full movie", "full film", "complete movie"}
+            match = next(
+                (v for v in results
+                 if any(kw in v.get("title", "").lower() for kw in _full_kw)),
+                None
+            )
+            if match:
+                vid_id = match["videoId"]
+                youtube_provider = {
+                    "id":    "youtube",
+                    "name":  "YouTube",
+                    "logo":  None,
+                    "url":   f"https://www.youtube.com/watch?v={vid_id}",
+                    "key":   vid_id,
+                    "title": match.get("title") or "Watch Free on YouTube",
+                }
+                print(f"[OTT] YouTube full movie found: {youtube_provider['url']}", flush=True)
+            else:
+                print(f"[OTT] No free full movie on YouTube for: {movie_title!r}", flush=True)
     except Exception as e:
         print(f"[OTT] YouTube check failed: {e}", flush=True)
 
@@ -852,6 +922,23 @@ def recommend_personalized():
     return jsonify({"ok": True, "results": recommendPersonalized(
         _ids("history"), _ids("favorites"), _ids("watchlist"))})
 
+# ── CineMantra AI Chat ───────────────────────────────────────
+
+@api_bp.route("/ai/chat", methods=["POST"])
+def ai_chat():
+    d       = request.get_json(silent=True) or {}
+    message = (d.get("message") or "").strip()
+    history = d.get("history") or []
+    if not message:
+        return _fail("message required", 400)
+    try:
+        from services.ai_chat import chatResponse
+        result = chatResponse(message, history)
+        return jsonify({"ok": True, **result})
+    except Exception as e:
+        return _fail(str(e))
+
+
 @api_bp.route("/recommend/trending")
 def recommend_trending():
     return jsonify({"ok": True, "results": recommendTrending()})
@@ -859,3 +946,107 @@ def recommend_trending():
 @api_bp.route("/recommend/top-rated")
 def recommend_top_rated():
     return jsonify({"ok": True, "results": recommendTopRated()})
+
+
+# ── Telugu Movie Calendar ─────────────────────────────────────
+
+@api_bp.route("/telugu/calendar")
+def telugu_calendar():
+    from datetime import date
+    today = date.today()
+    try:
+        year  = int(request.args.get("year",  today.year))
+        month = int(request.args.get("month", today.month))
+    except ValueError:
+        return _fail("Invalid year/month", 400)
+    try:
+        movies = getTeluguCalendar(year, month)
+        return jsonify({"ok": True, "results": movies, "year": year, "month": month})
+    except Exception as e:
+        return _fail(str(e))
+
+
+# ── Actor Birthdays Today ─────────────────────────────────────
+
+@api_bp.route("/actors/birthdays-today")
+def actor_birthdays_today():
+    """Returns actors whose birthday is today (MM-DD match)."""
+    from datetime import date
+    from concurrent.futures import ThreadPoolExecutor
+    from services.person import _fetch as person_fetch, _enrich_profile
+    today = date.today()
+    mm_dd = today.strftime("%m-%d")
+    try:
+        data    = person_fetch("/person/popular", {"language": "en-US", "page": 1})
+        people  = data.get("results", [])
+
+        def _get_bday(p):
+            try:
+                detail = person_fetch(f"/person/{p['id']}", {"language": "en-US"})
+                bday   = detail.get("birthday") or ""
+                if len(bday) >= 5 and bday[5:] == mm_dd:
+                    return _enrich_profile({**p, "birthday": bday})
+            except Exception:
+                pass
+            return None
+
+        with ThreadPoolExecutor(max_workers=10) as ex:
+            results = list(ex.map(_get_bday, people[:40]))
+        actors = [r for r in results if r]
+        return jsonify({"ok": True, "results": actors, "date": today.isoformat()})
+    except Exception as e:
+        return _fail(str(e))
+
+
+# ── Batch OTT providers for card icons ───────────────────────
+
+@api_bp.route("/movies/ott-providers", methods=["POST"])
+def movies_ott_providers():
+    """Given a list of movie_ids, return their IN streaming providers (flatrate only)."""
+    data = request.get_json(silent=True) or {}
+    ids  = [int(x) for x in (data.get("ids") or []) if str(x).isdigit()][:40]
+    if not ids:
+        return jsonify({"ok": True, "providers": {}})
+
+    _PROVIDER_LOGOS = {
+        8:   {"name": "Netflix",    "color": "#E50914"},
+        119: {"name": "Prime",      "color": "#00A8E0"},
+        122: {"name": "Hotstar",    "color": "#1F80E0"},
+        237: {"name": "SonyLIV",   "color": "#FF4500"},
+        220: {"name": "Zee5",       "color": "#8B2FC9"},
+        11:  {"name": "MUBI",       "color": "#000000"},
+        531: {"name": "Paramount+", "color": "#0064FF"},
+    }
+
+    from concurrent.futures import ThreadPoolExecutor
+    def _get(movie_id):
+        try:
+            raw = getWatchProviders(movie_id)
+            region = (raw or {}).get("results", {}).get("IN") or {}
+            flat = region.get("flatrate") or []
+            if not flat:
+                return movie_id, None
+            p = flat[0]
+            pid  = p.get("provider_id")
+            logo = p.get("logo_path")
+            meta = _PROVIDER_LOGOS.get(pid, {})
+            return movie_id, {
+                "id":    pid,
+                "name":  p.get("provider_name") or meta.get("name", ""),
+                "logo":  f"/api/tmdb-img/w92{logo}" if logo else None,
+                "color": meta.get("color", "#333"),
+            }
+        except Exception:
+            return movie_id, None
+
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        results = dict(ex.map(_get, ids))
+
+    return jsonify({"ok": True, "providers": {str(k): v for k, v in results.items() if v}})
+
+
+# ── Now Trending on OTT ───────────────────────────────────────
+
+@api_bp.route("/ott/trending")
+def ott_trending():
+    return _run_list(getOTTTrending)

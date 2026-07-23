@@ -1,0 +1,146 @@
+/* ============================================================
+   CELEBRITIES PAGE
+   ============================================================ */
+
+.celeb-page { padding-bottom: 4rem; }
+
+/* HERO */
+.celeb-hero {
+    background: linear-gradient(135deg, rgba(229,9,20,0.08) 0%, rgba(59,130,246,0.06) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+}
+.celeb-hero-inner { max-width: 1200px; margin: 0 auto; }
+.celeb-page-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.4rem;
+}
+.celeb-page-subtitle { font-size: 0.9rem; color: var(--text-muted); }
+
+/* SECTIONS */
+.celeb-sections { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+.celeb-section {
+    display: block;
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--border);
+}
+.celeb-section:last-child { border-bottom: none; margin-bottom: 0; }
+
+.celeb-section-header { margin-bottom: 1.5rem; }
+.celeb-section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+.celeb-section-sub { font-size: 0.82rem; color: var(--text-muted); }
+
+/* GRID */
+.celeb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1.25rem;
+}
+
+/* CARD */
+.celeb-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    transition: transform var(--transition);
+}
+.celeb-card:hover { transform: translateY(-5px); }
+
+.celeb-avatar-wrap {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    background: var(--bg-elevated);
+    transition: border-color var(--transition), box-shadow var(--transition);
+    flex-shrink: 0;
+}
+.celeb-card:hover .celeb-avatar-wrap {
+    border-color: var(--primary);
+    box-shadow: 0 0 18px var(--primary-glow);
+}
+.celeb-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.celeb-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.3;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.celeb-dept {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* SKELETON */
+.celeb-skel { pointer-events: none; cursor: default; }
+.celeb-skel:hover { transform: none; }
+.celeb-skel .celeb-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: none;
+}
+.celeb-skel-name {
+    height: 11px;
+    width: 80px;
+    border-radius: 4px;
+}
+.celeb-skel-sub {
+    height: 9px;
+    width: 60px;
+    border-radius: 4px;
+}
+
+.celeb-empty {
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    padding: 2rem 0;
+    text-align: center;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .celeb-hero { padding: 1.5rem 1.25rem 1.25rem; }
+    .celeb-tabs-wrap { padding: 1rem 1.25rem; }
+    .celeb-sections { padding: 1.5rem 1.25rem; }
+    .celeb-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1rem; }
+    .celeb-avatar-wrap { width: 90px; height: 90px; }
+    .celeb-skel .celeb-avatar { width: 90px; height: 90px; }
+}
+@media (max-width: 480px) {
+    .celeb-grid { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 0.75rem; }
+    .celeb-avatar-wrap { width: 76px; height: 76px; }
+    .celeb-skel .celeb-avatar { width: 76px; height: 76px; }
+    .celeb-tab { font-size: 0.78rem; padding: 0.45rem 1rem; }
+}

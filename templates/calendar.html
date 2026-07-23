@@ -1,0 +1,177 @@
+j{% extends "base.html" %}
+{% block title %}Telugu Movie Calendar — CineMantra{% endblock %}
+
+{% block content %}
+<div class="cal-page">
+
+    <div class="cal-header">
+        <h1 class="cal-heading">🗓️ Telugu Movie Calendar</h1>
+        <p class="cal-sub">Monthly view of upcoming &amp; released Telugu movies</p>
+        <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <span class="cal-month-label" id="calMonthLabel"></span>
+            <button class="cal-nav-btn" id="calNext">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="cal-grid-wrap">
+        <!-- Day headers -->
+        <div class="cal-day-headers">
+            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span>
+            <span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <!-- Movie list for selected date -->
+    <div class="cal-detail" id="calDetail" style="display:none">
+        <h2 class="cal-detail-title" id="calDetailTitle"></h2>
+        <div class="cal-detail-cards" id="calDetailCards"></div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+    const MONTHS = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+    const today  = new Date();
+    let curYear  = today.getFullYear();
+    let curMonth = today.getMonth() + 1; // 1-based
+    let movieMap = {}; // date-string → [movies]
+
+    const grid       = document.getElementById('calGrid');
+    const label      = document.getElementById('calMonthLabel');
+    const detail     = document.getElementById('calDetail');
+    const detailTitle= document.getElementById('calDetailTitle');
+    const detailCards= document.getElementById('calDetailCards');
+
+    function pad(n) { return String(n).padStart(2,'0'); }
+
+    async function loadMonth(year, month) {
+        grid.innerHTML = '<div class="cal-loading">Loading...</div>';
+        detail.style.display = 'none';
+        label.textContent = `${MONTHS[month-1]} ${year}`;
+        movieMap = {};
+        try {
+            const data = await fetch(`/api/telugu/calendar?year=${year}&month=${month}`).then(r=>r.json());
+            (data.results || []).forEach(m => {
+                const d = (m.release_date || '').slice(0,10);
+                if (!d) return;
+                if (!movieMap[d]) movieMap[d] = [];
+                movieMap[d].push(m);
+            });
+        } catch(e) { console.error(e); }
+        renderGrid(year, month);
+    }
+
+    function renderGrid(year, month) {
+        grid.innerHTML = '';
+        const firstDay = new Date(year, month-1, 1).getDay(); // 0=Sun
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+
+        // Empty cells before first day
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'cal-cell cal-cell-empty';
+            grid.appendChild(empty);
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${pad(month)}-${pad(d)}`;
+            const movies  = movieMap[dateStr] || [];
+            const cell    = document.createElement('div');
+            cell.className = 'cal-cell' +
+                (dateStr === todayStr ? ' cal-cell-today' : '') +
+                (movies.length ? ' cal-cell-has-movies' : '');
+            cell.innerHTML = `
+                <span class="cal-day-num">${d}</span>
+                ${movies.length ? `<span class="cal-movie-dot">${movies.length}</span>` : ''}
+                ${movies.slice(0,2).map(m=>`
+                    <div class="cal-movie-chip" title="${m.title||m.name||''}">
+                        ${(m.title||m.name||'').slice(0,14)}${(m.title||m.name||'').length>14?'…':''}
+                    </div>`).join('')}`;
+            if (movies.length) {
+                cell.addEventListener('click', () => showDetail(dateStr, movies));
+            }
+            grid.appendChild(cell);
+        }
+    }
+
+    function showDetail(dateStr, movies) {
+        detailTitle.textContent = `🎬 Releases on ${dateStr}`;
+        detailCards.innerHTML = '';
+        movies.forEach(m => {
+            const poster = m.poster_url || '/static/images/placeholder.svg';
+            const card = document.createElement('div');
+            card.className = 'cal-movie-card';
+            card.innerHTML = `
+                <img src="${poster}" alt="${m.title||''}" onerror="this.src='/static/images/placeholder.svg'">
+                <div class="cal-movie-info">
+                    <strong>${m.title||m.name||'Untitled'}</strong>
+                    <span>${(m.overview||'').slice(0,100)}${(m.overview||'').length>100?'…':''}</span>
+                </div>`;
+            card.addEventListener('click', () => window.location.href = '/movie/' + m.id);
+            detailCards.appendChild(card);
+        });
+        detail.style.display = 'block';
+        detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.getElementById('calPrev').addEventListener('click', () => {
+        curMonth--; if (curMonth < 1) { curMonth = 12; curYear--; }
+        loadMonth(curYear, curMonth);
+    });
+    document.getElementById('calNext').addEventListener('click', () => {
+        curMonth++; if (curMonth > 12) { curMonth = 1; curYear++; }
+        loadMonth(curYear, curMonth);
+    });
+
+    loadMonth(curYear, curMonth);
+})();
+</script>
+
+<style>
+.cal-page { padding: 2rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+.cal-heading { font-size: 1.8rem; font-weight: 800; color: var(--text); margin-bottom: 0.3rem; }
+.cal-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+.cal-nav { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.cal-nav-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--transition); }
+.cal-nav-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.cal-nav-btn svg { width: 16px; height: 16px; }
+.cal-month-label { font-size: 1.2rem; font-weight: 700; color: var(--text); min-width: 160px; text-align: center; }
+.cal-day-headers { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+.cal-day-headers span { text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; padding: 0.4rem 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-cell { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); min-height: 90px; padding: 0.4rem; position: relative; transition: border-color var(--transition); }
+.cal-cell-empty { background: transparent; border-color: transparent; }
+.cal-cell-today { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.cal-cell-has-movies { cursor: pointer; }
+.cal-cell-has-movies:hover { border-color: var(--primary); background: var(--bg-elevated); }
+.cal-day-num { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px; }
+.cal-cell-today .cal-day-num { color: var(--primary); }
+.cal-movie-dot { position: absolute; top: 6px; right: 6px; background: var(--primary); color: #fff; font-size: 0.6rem; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.cal-movie-chip { font-size: 0.65rem; background: rgba(229,9,20,0.15); color: var(--primary); border-radius: 3px; padding: 1px 4px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-loading { grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted); }
+.cal-detail { margin-top: 2rem; }
+.cal-detail-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 1rem; }
+.cal-detail-cards { display: flex; flex-direction: column; gap: 0.75rem; }
+.cal-movie-card { display: flex; gap: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; cursor: pointer; transition: background var(--transition); }
+.cal-movie-card:hover { background: var(--bg-elevated); }
+.cal-movie-card img { width: 50px; height: 75px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.cal-movie-info { display: flex; flex-direction: column; gap: 0.3rem; }
+.cal-movie-info strong { font-size: 0.9rem; color: var(--text); }
+.cal-movie-info span { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+@media (max-width: 600px) {
+    .cal-cell { min-height: 60px; padding: 0.25rem; }
+    .cal-movie-chip { display: none; }
+}
+</style>
+{% endblock %}

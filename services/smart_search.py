@@ -215,16 +215,20 @@ def parse_intent(raw: str) -> dict:
     return intent
 
 
-# ── Telugu-only filter ──────────────────────────────────────
+# ── Language filter ──────────────────────────────────────────
 _TE = "te"
 
-def _te_only(items: list) -> list:
-    """Hard filter: keep only original_language == 'te'."""
-    print(f"[SmartSearch] Search language filter: Telugu", flush=True)
+def _lang_filter(items: list, lang: str | None) -> list:
+    """Filter by language. If lang is None, defaults to Telugu."""
+    target = lang or _TE
+    print(f"[SmartSearch] Search language filter: {target}", flush=True)
     print(f"[SmartSearch] Before filter count: {len(items)}", flush=True)
-    filtered = [m for m in items if m.get("original_language") == _TE]
-    print(f"[SmartSearch] After Telugu filter count: {len(filtered)}", flush=True)
+    filtered = [m for m in items if m.get("original_language") == target]
+    print(f"[SmartSearch] After {target} filter count: {len(filtered)}", flush=True)
     return filtered
+
+def _te_only(items: list) -> list:
+    return _lang_filter(items, _TE)
 
 
 # ── TMDB helpers ─────────────────────────────────────────────
@@ -240,8 +244,8 @@ def _search_person_id(name: str) -> int | None:
     return None
 
 
-def _person_movies(person_id: int) -> list:
-    """Fetch person movie credits and keep only Telugu films."""
+def _person_movies(person_id: int, lang: str | None = None) -> list:
+    """Fetch person movie credits, filtered by language (default Telugu)."""
     try:
         data = _fetch(f"/person/{person_id}/movie_credits")
         cast = data.get("cast", [])
@@ -251,18 +255,19 @@ def _person_movies(person_id: int) -> list:
             if m["id"] not in seen:
                 seen.add(m["id"])
                 out.append(_enrich(m))
-        return _te_only(out)
+        return _lang_filter(out, lang)
     except Exception as e:
         print(f"[SmartSearch] person credits failed: {e}", flush=True)
         return []
 
 
 def _discover(intent: dict) -> list:
-    """Discover movies — always forces with_original_language=te."""
+    """Discover movies by language/genre/year."""
+    lang = intent.get("language") or _TE
     params = {
-        "sort_by":                 intent["sort_by"],
-        "include_adult":           "false",
-        "with_original_language":  _TE,   # always Telugu
+        "sort_by":                intent["sort_by"],
+        "include_adult":          "false",
+        "with_original_language": lang,
     }
     if intent["genre_id"]:
         params["with_genres"] = str(intent["genre_id"])
@@ -274,40 +279,42 @@ def _discover(intent: dict) -> list:
             params["page"] = page
             data = _fetch("/discover/movie", params)
             results.extend([_enrich(m) for m in data.get("results", [])])
-        return _te_only(results)[:20]
+        return _lang_filter(results, lang)[:20]
     except Exception as e:
         print(f"[SmartSearch] discover failed: {e}", flush=True)
         return []
 
 
-def _keyword_search_telugu(query: str) -> list:
+def _keyword_search(query: str, lang: str | None = None) -> list:
     """
-    Search for Telugu movies matching a keyword.
-    Uses /discover/movie with a text keyword via /search/movie filtered to 'te',
-    then falls back to discover popular if nothing found.
+    Search movies by keyword, filtered by language (default Telugu).
     """
-    # Step 1: /search/movie and keep only Telugu hits
+    target = lang or _TE
+    # Step 1: /search/movie filtered by language
     try:
         params = {"query": query, "language": "en-US", "include_adult": "false", "page": 1}
         raw = [_enrich(m) for m in _fetch("/search/movie", params).get("results", [])]
-        te  = _te_only(raw)
-        if te:
-            return te
+        filtered = _lang_filter(raw, target)
+        if filtered:
+            return filtered
     except Exception as e:
         print(f"[SmartSearch] keyword search failed: {e}", flush=True)
 
-    # Step 2: fallback — discover Telugu popular (query used as best-effort)
+    # Step 2: fallback — discover by language popular
     try:
         data = _fetch("/discover/movie", {
-            "with_original_language": _TE,
+            "with_original_language": target,
             "sort_by":                "popularity.desc",
             "include_adult":          "false",
             "page":                   1,
         })
-        return _te_only([_enrich(m) for m in data.get("results", [])])
+        return _lang_filter([_enrich(m) for m in data.get("results", [])], target)
     except Exception as e:
-        print(f"[SmartSearch] Telugu discover fallback failed: {e}", flush=True)
+        print(f"[SmartSearch] discover fallback failed: {e}", flush=True)
         return []
+
+# Keep old name as alias for backward compat
+_keyword_search_telugu = _keyword_search
 
 
 # ── Public entry point ───────────────────────────────────────
@@ -329,29 +336,29 @@ def smartSearch(raw_query: str) -> dict:
 
     results = []
 
+    lang = intent.get("language")  # None means Telugu (default)
+
     if intent["intent"] == "person":
         person_id = _search_person_id(intent["person"])
         print(f"[SmartSearch] TMDB request: /search/person -> id={person_id}", flush=True)
         if person_id:
-            results = _person_movies(person_id)
-        # Fallback: keyword search with person name (Telugu only)
+            results = _person_movies(person_id, lang)
+        # Fallback: keyword search with person name
         if not results:
-            results = _keyword_search_telugu(intent["person"])
+            results = _keyword_search(intent["person"], lang)
 
     elif intent["intent"] == "discover":
         print(f"[SmartSearch] TMDB request: /discover/movie params lang={intent['language']} genre={intent['genre_id']} year={intent['year']}", flush=True)
         results = _discover(intent)
-        # If discover returns nothing, fall back to Telugu keyword search
         if not results and intent["keywords"]:
-            results = _keyword_search_telugu(intent["keywords"])
+            results = _keyword_search(intent["keywords"], lang)
 
     else:  # plain search
         kw = intent["keywords"]
         print(f"[SmartSearch] TMDB request: /search/movie query={kw!r}", flush=True)
-        results = _keyword_search_telugu(kw)
-        # If nothing found with cleaned keywords, try original query
+        results = _keyword_search(kw, lang)
         if not results and kw != raw_query:
-            results = _keyword_search_telugu(raw_query)
+            results = _keyword_search(raw_query, lang)
 
     print(f"[SmartSearch] Smart results count: {len(results)}", flush=True)
 

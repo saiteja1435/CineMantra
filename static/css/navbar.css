@@ -109,6 +109,29 @@
     white-space: nowrap;
 }
 
+.mic-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: all var(--transition);
+}
+.mic-btn svg { width: 15px; height: 15px; }
+.mic-btn:hover { color: var(--primary); background: var(--bg-card); }
+.mic-btn.listening {
+    color: var(--primary);
+    background: rgba(229,9,20,0.15);
+    animation: mic-pulse 1s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(229,9,20,0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(229,9,20,0); }
+}
+
 /* Right */
 .header-right {
     display: flex;
@@ -432,3 +455,366 @@
     color: var(--text-muted);
     text-align: center;
 }
+
+/* ============================================================
+   BIRTHDAY STRIP
+   ============================================================ */
+.birthday-strip {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 0 1.5rem 0.5rem;
+    scrollbar-width: none;
+}
+.birthday-strip::-webkit-scrollbar { display: none; }
+
+.bday-card {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: linear-gradient(135deg, rgba(229,9,20,0.12), rgba(255,107,53,0.08));
+    border: 1px solid rgba(229,9,20,0.3);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.9rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all var(--transition);
+}
+.bday-card:hover { border-color: var(--primary); background: rgba(229,9,20,0.2); transform: translateY(-2px); }
+.bday-card img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+.bday-info { display: flex; flex-direction: column; gap: 2px; }
+.bday-name { font-size: 0.82rem; font-weight: 700; color: var(--text); white-space: nowrap; }
+.bday-tag  { font-size: 0.68rem; color: var(--primary); font-weight: 600; }
+
+/* ============================================================
+   AUTH MODAL
+   ============================================================ */
+.auth-clickable { cursor: pointer; }
+
+#authModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+}
+#authModal.open { display: flex; }
+
+.auth-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+}
+
+.auth-box {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 1.75rem 1.75rem;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+    z-index: 1;
+}
+
+.auth-close {
+    position: absolute;
+    top: 0.75rem; right: 1rem;
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    line-height: 1;
+    transition: color var(--transition);
+}
+.auth-close:hover { color: var(--text); }
+
+.auth-logo {
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+}
+.auth-logo span { color: var(--primary); }
+
+.auth-sub {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+}
+
+/* ── Tabs ── */
+.auth-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    margin-bottom: 1.25rem;
+}
+.auth-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: calc(var(--radius-sm) - 2px);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all var(--transition);
+    cursor: pointer;
+}
+.auth-tab.active {
+    background: var(--bg-card);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.auth-tab svg { flex-shrink: 0; }
+
+/* ── Google button ── */
+.auth-google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: #fff;
+    color: #1f1f1f;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: box-shadow var(--transition), transform var(--transition);
+    margin-top: 0.25rem;
+}
+.auth-google-btn:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
+}
+
+/* ── Divider ── */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.9rem 0;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ── Email inputs ── */
+.auth-email-input {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.9rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    outline: none;
+    font-family: var(--font);
+    transition: border-color var(--transition);
+    margin-bottom: 0.6rem;
+    display: block;
+}
+.auth-email-input:focus { border-color: var(--primary); }
+.auth-email-input::placeholder { color: var(--text-dim); }
+
+.auth-toggle-link {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+.auth-toggle-link button {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: underline;
+    font-size: 0.78rem;
+    margin-left: 0.25rem;
+}
+
+/* ── Phone input ── */
+.auth-phone-wrap {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.auth-cc {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.82rem;
+    padding: 0.6rem 0.5rem;
+    border-radius: var(--radius-sm);
+    outline: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    width: 90px;
+}
+.auth-phone-input {
+    flex: 1;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.95rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-sm);
+    outline: none;
+    font-family: var(--font);
+    letter-spacing: 1px;
+    transition: border-color var(--transition);
+}
+.auth-phone-input:focus { border-color: var(--primary); }
+.auth-phone-input::placeholder { color: var(--text-dim); letter-spacing: 0; }
+
+.auth-otp-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: opacity var(--transition);
+    margin-bottom: 0.5rem;
+}
+.auth-otp-btn:hover   { opacity: 0.88; }
+.auth-otp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.auth-phone-hint {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 0.25rem;
+}
+
+/* ── OTP sent message ── */
+.auth-otp-sent {
+    font-size: 0.8rem;
+    color: #10B981;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+/* ── OTP boxes ── */
+.auth-otp-boxes {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+.otp-box {
+    width: 44px;
+    height: 52px;
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: var(--bg-elevated);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    outline: none;
+    transition: border-color var(--transition);
+    font-family: var(--font);
+}
+.otp-box:focus  { border-color: var(--primary); }
+.otp-box.otp-error {
+    border-color: #EF4444;
+    animation: shake 0.3s ease;
+}
+@keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25%      { transform: translateX(-4px); }
+    75%      { transform: translateX(4px); }
+}
+
+.auth-resend-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-top: 0.25rem;
+}
+
+.auth-error {
+    font-size: 0.78rem;
+    color: #EF4444;
+    margin-top: 0.5rem;
+    min-height: 1.2em;
+}
+
+.auth-terms {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 1.25rem;
+}
+
+/* ============================================================
+   USER DROPDOWN
+   ============================================================ */
+#userDropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    min-width: 200px;
+    z-index: 600;
+    overflow: hidden;
+}
+#userDropdown.open { display: block; }
+
+.ud-info {
+    padding: 0.9rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+.ud-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+}
+.ud-email {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+.ud-divider {
+    height: 1px;
+    background: var(--border);
+}
+.ud-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition: background var(--transition), color var(--transition);
+    text-align: left;
+}
+.ud-item:hover { background: var(--bg-elevated); color: var(--text); }
+.ud-signout:hover { color: var(--primary); }
+

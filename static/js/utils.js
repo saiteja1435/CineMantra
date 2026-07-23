@@ -61,10 +61,12 @@ const Utils = {
         this._getLazyObserver().observe(img);
     },
 
-    async fetchJSON(url) {
+    async fetchJSON(url, options = {}) {
+        const uid = window.CM_UID || 'local';
+        const headers = { 'X-User-ID': uid, ...(options.headers || {}) };
         let res;
         try {
-            res = await fetch(url);
+            res = await fetch(url, { ...options, headers });
         } catch (networkErr) {
             console.error('[CineMantra] Network error fetching', url, networkErr);
             throw networkErr;

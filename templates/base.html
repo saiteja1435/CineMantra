@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#e50914">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CineMantra">
     <title>{% block title %}CineMantra{% endblock %}</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/images/icon-192.png">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/hero.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cards.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_chat.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -30,6 +39,14 @@
                     </svg>
                     <input type="text" id="searchInput" placeholder="Search movies, web series, cast, genres..." autocomplete="off">
                     <kbd class="search-kbd">⌘K</kbd>
+                    <button class="mic-btn" id="micBtn" aria-label="Voice search" title="Voice search">
+                        <svg id="micIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="2" width="6" height="11" rx="3"/>
+                            <path d="M19 10a7 7 0 0 1-14 0"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="search-dropdown" id="searchDropdown"></div>
             </div>
@@ -38,10 +55,14 @@
         <div class="header-right">
             <div class="lang-selector">
                 <select id="langSelect" aria-label="Language">
-                    <option value="en">EN</option>
-                    <option value="hi">HI</option>
-                    <option value="ta">TA</option>
-                    <option value="te">TE</option>
+                    <option value="te">Telugu</option>
+                    <option value="hi">Hindi</option>
+                    <option value="en">English</option>
+                    <option value="ta">Tamil</option>
+                    <option value="ml">Malayalam</option>
+                    <option value="kn">Kannada</option>
+                    <option value="bn">Bengali</option>
+                    <option value="mr">Marathi</option>
                 </select>
             </div>
 
@@ -89,7 +110,7 @@
                         </a>
                     </li>
                     <li class="nav-item" data-page="movies">
-                        <a href="#">
+                        <a href="/movies">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
                             <span>Movies</span>
                         </a>
@@ -101,45 +122,51 @@
                         </a>
                     </li>
                     <li class="nav-item" data-page="trending">
-                        <a href="#">
+                        <a href="/trending">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                             <span>Trending</span>
                             <span class="nav-badge">Hot</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="new">
-                        <a href="#">
+                        <a href="/new-releases">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             <span>New Releases</span>
                             <span class="nav-badge new">New</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="toprated">
-                        <a href="#">
+                        <a href="/top-rated">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                             <span>Top Rated</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="upcoming">
-                        <a href="#">
+                        <a href="/upcoming">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             <span>Upcoming</span>
                         </a>
                     </li>
+                    <li class="nav-item" data-page="calendar">
+                        <a href="/calendar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg>
+                            <span>Calendar</span>
+                        </a>
+                    </li>
                     <li class="nav-item" data-page="watchlater">
-                        <a href="/watchlist">
+                        <a href="/watchlist?tab=all">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                             <span>Watch Later</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="favorites">
-                        <a href="/watchlist">
+                        <a href="/watchlist?tab=favorites">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                             <span>Favorites</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="history">
-                        <a href="#">
+                        <a href="/watchlist?tab=watching">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.95"/></svg>
                             <span>History</span>
                         </a>
@@ -151,19 +178,19 @@
                 <p class="nav-label">More</p>
                 <ul class="nav-group">
                     <li class="nav-item" data-page="genres">
-                        <a href="#">
+                        <a href="/genres">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                             <span>Genres</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="ott">
-                        <a href="#">
+                        <a href="/ott">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                             <span>OTT Platforms</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="celebrities">
-                        <a href="#">
+                        <a href="/celebrities">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                             <span>Celebrities</span>
                         </a>
@@ -208,6 +235,75 @@
 
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ai_chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/surprise.js') }}"></script>
     {% block scripts %}{% endblock %}
+
+    <!-- PWA Install Banner -->
+    <div id="pwaInstallBanner" style="display:none;position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a2e;border:1px solid #e50914;border-radius:14px;padding:0.9rem 1.4rem;align-items:center;gap:1rem;box-shadow:0 8px 32px rgba(0,0,0,0.6);max-width:360px;width:calc(100% - 2rem);">
+      <span style="font-size:1.6rem;">🎬</span>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:0.9rem;color:#fff;">Install CineMantra</div>
+        <div style="font-size:0.75rem;color:#aaa;">Add to home screen for the best experience</div>
+      </div>
+      <button id="pwaInstallBtn" style="background:#e50914;color:#fff;border:none;border-radius:8px;padding:0.45rem 1rem;font-weight:600;font-size:0.82rem;cursor:pointer;">Install</button>
+      <button id="pwaInstallDismiss" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
+    </div>
+
+    <script>
+      // ── Service Worker registration ──────────────────────
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(reg => {
+              console.log('[SW] Registered, scope:', reg.scope);
+              // Tell new SW to activate immediately
+              reg.addEventListener('updatefound', () => {
+                const newSW = reg.installing;
+                newSW?.addEventListener('statechange', () => {
+                  if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                    newSW.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                });
+              });
+            })
+            .catch(err => console.warn('[SW] Registration failed:', err));
+        });
+      }
+
+      // ── PWA Install prompt ───────────────────────────────
+      let _deferredPrompt = null;
+      const _banner   = document.getElementById('pwaInstallBanner');
+      const _installBtn = document.getElementById('pwaInstallBtn');
+      const _dismissBtn = document.getElementById('pwaInstallDismiss');
+
+      window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        _deferredPrompt = e;
+        if (!localStorage.getItem('pwa-dismissed')) {
+          _banner.style.display = 'flex';
+        }
+      });
+
+      _installBtn?.addEventListener('click', async () => {
+        if (!_deferredPrompt) return;
+        _deferredPrompt.prompt();
+        const { outcome } = await _deferredPrompt.userChoice;
+        _deferredPrompt = null;
+        _banner.style.display = 'none';
+        if (outcome === 'accepted') console.log('[PWA] Installed');
+      });
+
+      _dismissBtn?.addEventListener('click', () => {
+        _banner.style.display = 'none';
+        localStorage.setItem('pwa-dismissed', '1');
+      });
+
+      window.addEventListener('appinstalled', () => {
+        _banner.style.display = 'none';
+        _deferredPrompt = null;
+      });
+    </script>
 </body>
 </html>

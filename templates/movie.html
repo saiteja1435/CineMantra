@@ -1,12 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Movie — CineMantra{% endblock %}
+{% block title %}{{ og.title or 'Movie' }} — CineMantra{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/movie.css') }}">
+{% if og %}
+<meta property="og:type"        content="video.movie">
+<meta property="og:site_name"   content="CineMantra">
+<meta property="og:title"       content="{{ og.title }} — CineMantra">
+<meta property="og:description" content="{{ og.description }}">
+<meta property="og:image"       content="{{ og.image }}">
+<meta property="og:url"         content="{{ og.url }}">
+<meta name="twitter:card"       content="summary_large_image">
+<meta name="twitter:title"      content="{{ og.title }} — CineMantra">
+<meta name="twitter:description" content="{{ og.description }}">
+<meta name="twitter:image"      content="{{ og.image }}">
+{% endif %}
 {% endblock %}
 
 {% block content %}
 <div id="moviePage" data-movie-id="{{ movie_id }}">
+
+    <!-- BACK BUTTON -->
+    <div class="md-back-bar">
+        <button class="md-back-btn" onclick="history.length > 1 ? history.back() : window.location.href='/'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+        </button>
+    </div>
 
     <!-- BACKDROP HERO -->
     <div class="md-backdrop-wrap" id="mdBackdrop">
@@ -40,9 +60,8 @@
                         <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                         Watch Trailer
                     </button>
-                    <button class="btn-secondary" id="btnFav">
+                    <button class="btn-icon" id="btnFav" aria-label="Favorites" title="Add to Favorites">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                        Favorites
                     </button>
                     <button class="btn-secondary" id="btnWatchlist">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>

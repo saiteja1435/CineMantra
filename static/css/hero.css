@@ -21,6 +21,36 @@
     pointer-events: auto;
 }
 
+/* Mobile: hero uses natural height */
+@media (max-width: 768px) {
+    .hero-banner {
+        height: auto;
+        min-height: 420px;
+    }
+    .hero-slide {
+        position: relative;
+        inset: auto;
+        opacity: 0;
+        min-height: 420px;
+        display: none;
+    }
+    .hero-slide.active {
+        display: flex;
+        flex-direction: column;
+        opacity: 1;
+    }
+    .hero-bg-real,
+    .hero-bg-placeholder {
+        position: absolute;
+        inset: 0;
+    }
+    .hero-content {
+        position: relative;
+        z-index: 3;
+        min-height: 420px;
+    }
+}
+
 .hero-bg-placeholder {
     position: absolute;
     inset: 0;

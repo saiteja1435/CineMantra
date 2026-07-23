@@ -157,7 +157,7 @@
             <div class="sr-card-poster-wrap">
                 <img class="lazy" data-src="${poster}" alt="${title}" loading="lazy">
                 <span class="sr-card-rating">${STAR_SVG} ${rating}</span>
-                <span class="sr-card-lang-badge">Telugu</span>
+                <span class="sr-card-lang-badge">${_LANG_LABELS[movie.original_language] || movie.original_language || ''}</span>
             </div>
             <div class="sr-card-body">
                 <div class="sr-card-title">${title}</div>
@@ -178,23 +178,14 @@
         return card;
     }
 
-    /* ── Client-side Telugu guard ────────────────────────── */
-    function _teOnly(results) {
-        const before = results.length;
-        const filtered = results.filter(m => m.original_language === 'te');
-        console.log('Search language filter: Telugu');
-        console.log('Before filter count:', before);
-        console.log('After Telugu filter count:', filtered.length);
-        return filtered;
-    }
+    const _LANG_LABELS = { te:'Telugu', hi:'Hindi', en:'English', ta:'Tamil', ml:'Malayalam', kn:'Kannada', bn:'Bengali', mr:'Marathi' };
 
     /* ── Render results ──────────────────────────────────── */
     function _renderResults(results, intentLabel) {
         _showResultsPane();
         _hideAll();
 
-        // Final client-side Telugu guard
-        results = _teOnly(results || []);
+        results = results || [];
         console.log('Results count:', results.length);
 
         if (!results.length) { _showEmpty(); return; }
@@ -263,10 +254,10 @@
                 return;
             }
 
-            // 3. Fallback: Telugu keyword search
-            console.log('Calling Telugu search API (fallback): /api/telugu/search?q=' + query);
-            const fallback = await Utils.fetchJSON('/api/telugu/search?q=' + encodeURIComponent(query));
-            console.log('Telugu search response (fallback):', fallback);
+            // 3. Fallback: general keyword search
+            console.log('Calling search API (fallback): /api/search?q=' + query);
+            const fallback = await Utils.fetchJSON('/api/search?q=' + encodeURIComponent(query));
+            console.log('Search response (fallback):', fallback);
 
             if (fallback.ok && fallback.results?.length) {
                 _cacheSet(query, { results: fallback.results, intentLabel: 'Movie title search' });

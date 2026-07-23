@@ -103,7 +103,19 @@
 <!-- CONTENT ROWS -->
 <div class="content-rows">
 
+<!-- ACTOR BIRTHDAYS TODAY -->
+<section class="content-row" id="row-birthdays" style="display:none">
+    <div class="row-header">
+        <div class="row-titles">
+            <h2 class="row-title">🎂 Today's Birthdays</h2>
+            <p class="row-subtitle">Telugu stars celebrating today</p>
+        </div>
+    </div>
+    <div class="birthday-strip" id="birthdayStrip"></div>
+</section>
+
     {% set sections = [
+        ("recommended",     "🎯 Recommended for You",       "Based on what you watch"),
         ("te-trending",    "🔥 Trending Telugu",           "Most watched Telugu movies right now"),
         ("te-popular",     "🎬 Popular Telugu Movies",     "All-time Telugu crowd favourites"),
         ("te-toprated",    "⭐ Top Rated Telugu",          "Critically acclaimed Telugu cinema"),
@@ -118,6 +130,7 @@
         ("te-ws-comedy",        "😂 Comedy Web Series",           "Laugh-out-loud Telugu series"),
         ("te-ws-romance",       "❤️ Romance Web Series",          "Best Telugu love stories"),
         ("te-ws-action",        "⚔ Action Web Series",           "High-octane Telugu action series"),
+        ("te-ott-trending",     "🎬 Now Trending on OTT",         "Netflix · Prime · Hotstar లో trending"),
         ("te-ott",              "🌐 Top Telugu OTT Releases",     "Best Telugu streaming picks"),
         ("te-classics",    "🏆 Classic Telugu Movies",     "Timeless Telugu masterpieces"),
         ("te-family",      "👨‍👩‍👧 Family Entertainers",        "Telugu movies for the whole family"),
