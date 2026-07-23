@@ -63,11 +63,11 @@
     const langSelectEl = document.getElementById('langSelect');
     if (langSelectEl) {
         langSelectEl.value = _lang;
+        // change is handled globally in base.html (page reload)
+        // but also support in-page reload for home page
         langSelectEl.addEventListener('change', () => {
             _lang = langSelectEl.value;
             localStorage.setItem('cm-lang', _lang);
-            // Notify all pages
-            document.dispatchEvent(new CustomEvent('cm:lang-change', { detail: { lang: _lang } }));
             reloadAllRows();
             Toast.show(`🌐 Switched to ${LANG_LABELS[_lang] || _lang} movies`, 'info');
         });

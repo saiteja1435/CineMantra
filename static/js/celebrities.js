@@ -141,5 +141,4 @@
     }
 
     bootAll();
-    document.addEventListener('cm:lang-change', bootAll);
 })();

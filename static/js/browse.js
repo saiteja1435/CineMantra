@@ -80,7 +80,4 @@
     }
 
     load();
-
-    // Reload when language changes
-    document.addEventListener('cm:lang-change', load);
 })();
