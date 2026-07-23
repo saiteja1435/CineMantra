@@ -1,12 +1,12 @@
-j{% extends "base.html" %}
-{% block title %}Telugu Movie Calendar — CineMantra{% endblock %}
+{% extends "base.html" %}
+{% block title %}Movie Calendar — CineMantra{% endblock %}
 
 {% block content %}
 <div class="cal-page">
 
     <div class="cal-header">
-        <h1 class="cal-heading">🗓️ Telugu Movie Calendar</h1>
-        <p class="cal-sub">Monthly view of upcoming &amp; released Telugu movies</p>
+        <h1 class="cal-heading" id="calHeading">🗓️ Movie Calendar</h1>
+        <p class="cal-sub" id="calSub">Monthly view of upcoming &amp; released movies</p>
         <div class="cal-nav">
             <button class="cal-nav-btn" id="calPrev">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -41,16 +41,33 @@ j{% extends "base.html" %}
 (() => {
     const MONTHS = ['January','February','March','April','May','June',
                     'July','August','September','October','November','December'];
+    const LANG_LABELS = { te:'Telugu', hi:'Hindi', en:'English', ta:'Tamil', ml:'Malayalam', kn:'Kannada', bn:'Bengali', mr:'Marathi' };
     const today  = new Date();
     let curYear  = today.getFullYear();
-    let curMonth = today.getMonth() + 1; // 1-based
-    let movieMap = {}; // date-string → [movies]
+    let curMonth = today.getMonth() + 1;
+    let movieMap = {};
+    let _lang    = localStorage.getItem('cm-lang') || 'te';
 
-    const grid       = document.getElementById('calGrid');
-    const label      = document.getElementById('calMonthLabel');
-    const detail     = document.getElementById('calDetail');
-    const detailTitle= document.getElementById('calDetailTitle');
-    const detailCards= document.getElementById('calDetailCards');
+    const grid        = document.getElementById('calGrid');
+    const label       = document.getElementById('calMonthLabel');
+    const detail      = document.getElementById('calDetail');
+    const detailTitle = document.getElementById('calDetailTitle');
+    const detailCards = document.getElementById('calDetailCards');
+    const heading     = document.getElementById('calHeading');
+    const sub         = document.getElementById('calSub');
+
+    function updateHeading() {
+        const L = LANG_LABELS[_lang] || _lang;
+        if (heading) heading.textContent = `🗓️ ${L} Movie Calendar`;
+        if (sub)     sub.textContent     = `Monthly view of upcoming & released ${L} movies`;
+    }
+
+    // Re-sync lang when user changes it in the header selector
+    document.getElementById('langSelect')?.addEventListener('change', e => {
+        _lang = e.target.value;
+        updateHeading();
+        loadMonth(curYear, curMonth);
+    });
 
     function pad(n) { return String(n).padStart(2,'0'); }
 
@@ -60,7 +77,7 @@ j{% extends "base.html" %}
         label.textContent = `${MONTHS[month-1]} ${year}`;
         movieMap = {};
         try {
-            const data = await fetch(`/api/telugu/calendar?year=${year}&month=${month}`).then(r=>r.json());
+            const data = await fetch(`/api/telugu/calendar?year=${year}&month=${month}&lang=${_lang}`).then(r=>r.json());
             (data.results || []).forEach(m => {
                 const d = (m.release_date || '').slice(0,10);
                 if (!d) return;
@@ -135,6 +152,7 @@ j{% extends "base.html" %}
     });
 
     loadMonth(curYear, curMonth);
+    updateHeading();
 })();
 </script>
 

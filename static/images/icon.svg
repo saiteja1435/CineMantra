@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#080B14"/>
+  <!-- Outer glow ring -->
+  <circle cx="256" cy="256" r="220" stroke="#E50914" stroke-width="6" fill="none" opacity="0.3"/>
+  <!-- Clapperboard body -->
+  <rect x="96" y="200" width="320" height="230" rx="24" fill="#1A2235" stroke="#E50914" stroke-width="6"/>
+  <!-- Clapperboard top bar -->
+  <rect x="96" y="140" width="320" height="76" rx="20" fill="#E50914"/>
+  <!-- Clapper stripes (white diagonal lines on red bar) -->
+  <line x1="160" y1="140" x2="136" y2="216" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <line x1="220" y1="140" x2="196" y2="216" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <line x1="280" y1="140" x2="256" y2="216" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <line x1="340" y1="140" x2="316" y2="216" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <line x1="400" y1="140" x2="376" y2="216" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <!-- Play button triangle -->
+  <polygon points="196,258 196,370 330,314" fill="#E50914"/>
+  <!-- Film holes on body -->
+  <circle cx="130" cy="240" r="10" fill="#080B14" opacity="0.6"/>
+  <circle cx="130" cy="280" r="10" fill="#080B14" opacity="0.6"/>
+  <circle cx="130" cy="320" r="10" fill="#080B14" opacity="0.6"/>
+  <circle cx="130" cy="360" r="10" fill="#080B14" opacity="0.6"/>
+  <circle cx="382" cy="240" r="10" fill="#080B14" opacity="0.6"/>
+  <circle cx="382" cy="280" r="10" fill="#080B14" opacity="0.6"/>
+  <circle cx="382" cy="320" r="10" fill="#080B14" opacity="0.6"/>
+  <circle cx="382" cy="360" r="10" fill="#080B14" opacity="0.6"/>
+</svg>

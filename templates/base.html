@@ -11,6 +11,7 @@
     <title>{% block title %}CineMantra{% endblock %}</title>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/images/icon-192.png">
+    <link rel="icon" type="image/svg+xml" href="/static/images/icon.svg">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/hero.css') }}">
@@ -21,6 +22,185 @@
     {% block head %}{% endblock %}
 </head>
 <body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="cmSplash">
+        <div class="splash-bg"></div>
+        <div class="splash-flash"></div>
+        <div class="splash-content">
+            <!-- Film reel ring -->
+            <div class="splash-ring">
+                <div class="splash-glow"></div>
+                <svg class="splash-ring-svg" viewBox="0 0 120 120" fill="none">
+                    <circle cx="60" cy="60" r="54" stroke="rgba(229,9,20,0.15)" stroke-width="1.5"/>
+                    <circle cx="60" cy="60" r="54" stroke="#E50914" stroke-width="2"
+                            stroke-dasharray="339" stroke-dashoffset="339"
+                            class="splash-ring-progress"
+                            stroke-linecap="round" transform="rotate(-90 60 60)"/>
+                    <!-- Film holes -->
+                    <circle cx="60" cy="8"  r="4" fill="rgba(229,9,20,0.4)"/>
+                    <circle cx="60" cy="112" r="4" fill="rgba(229,9,20,0.4)"/>
+                    <circle cx="8"  cy="60" r="4" fill="rgba(229,9,20,0.4)"/>
+                    <circle cx="112" cy="60" r="4" fill="rgba(229,9,20,0.4)"/>
+                    <circle cx="23" cy="23" r="3" fill="rgba(229,9,20,0.25)"/>
+                    <circle cx="97" cy="23" r="3" fill="rgba(229,9,20,0.25)"/>
+                    <circle cx="23" cy="97" r="3" fill="rgba(229,9,20,0.25)"/>
+                    <circle cx="97" cy="97" r="3" fill="rgba(229,9,20,0.25)"/>
+                </svg>
+            </div>
+            <!-- Logo icon -->
+            <div class="splash-icon">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Clapperboard body -->
+                    <rect x="6" y="18" width="52" height="38" rx="5" fill="#1A2235" stroke="#E50914" stroke-width="2"/>
+                    <!-- Clapperboard top -->
+                    <rect x="6" y="10" width="52" height="12" rx="4" fill="#E50914"/>
+                    <!-- Clapper stripes -->
+                    <line x1="18" y1="10" x2="14" y2="22" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="30" y1="10" x2="26" y2="22" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="42" y1="10" x2="38" y2="22" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="54" y1="10" x2="50" y2="22" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                    <!-- Play triangle -->
+                    <polygon points="26,30 26,48 46,39" fill="#E50914"/>
+                </svg>
+            </div>
+            <!-- Brand name -->
+            <div class="splash-brand">
+                <span class="splash-cine">Cine</span><span class="splash-mantra">Mantra</span>
+            </div>
+            <div class="splash-tagline">Telugu Cinema Universe</div>
+        </div>
+    </div>
+
+    <style>
+    #cmSplash {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+    }
+    #cmSplash.hidden { display: none; }
+    .splash-bg {
+        position: absolute;
+        inset: 0;
+        background: #080B14;
+        animation: splashBgOut 0.6s ease 2.2s forwards;
+    }
+    /* Cinematic flash on entry */
+    .splash-flash {
+        position: absolute;
+        inset: 0;
+        background: #fff;
+        opacity: 0;
+        animation: splashFlash 0.25s ease 0.05s forwards;
+        pointer-events: none;
+    }
+    .splash-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        animation: splashContentOut 0.6s ease 2.2s forwards;
+    }
+    .splash-ring {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin-bottom: -60px;
+    }
+    .splash-ring-svg {
+        width: 120px;
+        height: 120px;
+    }
+    .splash-ring-progress {
+        animation: splashArc 1.4s cubic-bezier(0.4,0,0.2,1) 0.1s forwards;
+    }
+    .splash-icon {
+        width: 72px;
+        height: 72px;
+        position: relative;
+        z-index: 3;
+        animation: splashIconShoot 0.55s cubic-bezier(0.22,1.2,0.36,1) 0.15s both;
+        filter: drop-shadow(0 0 18px rgba(229,9,20,0.7));
+    }
+    .splash-icon svg { width: 100%; height: 100%; }
+    .splash-brand {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: 1px;
+        margin-top: 1rem;
+        animation: splashFadeUp 0.5s ease 0.65s both;
+    }
+    .splash-cine   { color: #fff; }
+    .splash-mantra { color: #E50914; }
+    .splash-tagline {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.35);
+        margin-top: 0.4rem;
+        animation: splashFadeUp 0.5s ease 0.85s both;
+    }
+    /* Glow pulse on the ring after arc completes */
+    .splash-glow {
+        position: absolute;
+        inset: -10px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(229,9,20,0.25) 0%, transparent 70%);
+        animation: splashGlowPulse 0.8s ease 1.5s both;
+        pointer-events: none;
+    }
+    @keyframes splashFlash {
+        0%   { opacity: 0.18; }
+        100% { opacity: 0; }
+    }
+    @keyframes splashArc {
+        from { stroke-dashoffset: 339; }
+        to   { stroke-dashoffset: 0; }
+    }
+    @keyframes splashIconShoot {
+        from { opacity: 0; transform: scale(0.1) translateY(40px); }
+        to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes splashFadeUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes splashGlowPulse {
+        from { opacity: 0; transform: scale(0.8); }
+        50%  { opacity: 1; transform: scale(1.1); }
+        to   { opacity: 0; transform: scale(1.3); }
+    }
+    @keyframes splashBgOut {
+        from { opacity: 1; }
+        to   { opacity: 0; }
+    }
+    @keyframes splashContentOut {
+        from { opacity: 1; transform: scale(1); }
+        to   { opacity: 0; transform: scale(1.1); }
+    }
+    </style>
+    <script>
+      // Hide splash after animation completes
+      setTimeout(() => {
+        const s = document.getElementById('cmSplash');
+        if (s) s.classList.add('hidden');
+      }, 2850);
+      // Show splash only on first page load of this session (not on every navigation)
+      if (sessionStorage.getItem('cm-splash-done')) {
+        document.getElementById('cmSplash')?.classList.add('hidden');
+      } else {
+        sessionStorage.setItem('cm-splash-done', '1');
+      }
+    </script>
 
     <!-- TOP HEADER -->
     <header class="top-header" id="topHeader">

@@ -4,10 +4,16 @@
   "description": "Your ultimate destination for Telugu cinema discovery",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
+  "background_color": "#080B14",
   "theme_color": "#e50914",
   "orientation": "portrait-primary",
   "icons": [
+    {
+      "src": "/static/images/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/static/images/icon-192.png",
       "sizes": "192x192",
@@ -19,14 +25,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/static/images/placeholder.svg",
-      "sizes": "1280x720",
-      "type": "image/svg+xml",
-      "form_factor": "wide"
     }
   ],
   "categories": ["entertainment"],

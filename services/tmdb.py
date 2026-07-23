@@ -333,18 +333,20 @@ def getTVCore(tv_id: int) -> dict:
                 result[k] = None
     return result
 
-def getTeluguCalendar(year: int, month: int) -> list:
-    """Telugu movies releasing in a given month, sorted by release date."""
+def getLangCalendar(lang: str, year: int, month: int) -> list:
+    """Movies in given language releasing in a given month, sorted by release date."""
     import calendar
     last_day = calendar.monthrange(year, month)[1]
     date_from = f"{year}-{month:02d}-01"
     date_to   = f"{year}-{month:02d}-{last_day}"
-    results = _te_discover({
+    return _discover(lang, {
         "primary_release_date.gte": date_from,
         "primary_release_date.lte": date_to,
         "sort_by": "primary_release_date.asc",
     }, pages=3)
-    return results
+
+def getTeluguCalendar(year: int, month: int) -> list:
+    return getLangCalendar("te", year, month)
 
 
 def getOTTTrending() -> list:
